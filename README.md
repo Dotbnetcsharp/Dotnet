@@ -1,3 +1,67 @@
+
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public JsonValidationMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                string body;
+                using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    body = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                try
+                {
+                    var json = JObject.Parse(body);
+
+                    // Log the JSON received for debugging
+                    Console.WriteLine("Received JSON: " + json.ToString());
+
+                    if (json.Properties().GroupBy(p => p.Name).Any(g => g.Count() > 1))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync("Duplicate properties are not allowed.");
+                        return;
+                    }
+                }
+                catch (JsonReaderException ex)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Invalid JSON format.");
+                    Console.WriteLine("JSON Parsing Exception: " + ex.Message);
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+    }
+}
+
+
+
+
+
+
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.IO;
