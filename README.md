@@ -1,3 +1,113 @@
+
+To ensure that your API rejects JSON requests with duplicate properties and returns an appropriate error message, you can create a custom middleware to inspect and validate the JSON request body before it reaches the controller. This middleware will reject requests with duplicate properties and return a suitable error response.
+
+### Step-by-Step Guide to Implement Custom Middleware
+
+1. **Create a Middleware Class:**
+
+   - In your main web project, create a new folder named `Middleware`.
+   - Inside the `Middleware` folder, create a new class file named `JsonValidationMiddleware.cs`.
+
+2. **Implement the Middleware:**
+
+   - Copy the following code into the `JsonValidationMiddleware.cs` file:
+
+```csharp
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public JsonValidationMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            // Only validate JSON requests
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();
+                    var json = JObject.Parse(body);
+
+                    if (json.Properties().GroupBy(p => p.Name).Any(g => g.Count() > 1))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync("Duplicate properties are not allowed.");
+                        return;
+                    }
+
+                    // Reset the request body stream position so the next middleware can read it
+                    context.Request.Body.Position = 0;
+                }
+            }
+
+            // Call the next middleware in the pipeline
+            await _next(context);
+        }
+    }
+}
+```
+
+3. **Register the Middleware:**
+
+   - Open `Startup.cs` and register the custom middleware in the `Configure` method:
+
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseRouting();
+
+    // Add the custom JSON validation middleware
+    app.UseMiddleware<YourNamespace.Middleware.JsonValidationMiddleware>();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+    });
+
+    // Other middleware registrations
+}
+```
+
+4. **Test Your API:**
+
+   - Test your API with various JSON inputs to ensure that it properly rejects JSON with duplicate properties and returns a 400 Bad Request response with the message "Duplicate properties are not allowed."
+
+### Summary
+
+- Create a custom middleware (`JsonValidationMiddleware`) to inspect the JSON request body for duplicate properties.
+- Register the custom middleware in the `Configure` method of `Startup.cs`.
+- Test your API to ensure that it correctly rejects invalid JSON requests and returns an appropriate error response.
+
+This approach ensures that your API validates JSON requests at the middleware level, providing a clear error message when duplicate properties are detected.
+
+
+
+
+
+,....................................
+
+
+
+
 To enforce a rule in your ASP.NET Core API that rejects JSON input containing duplicate properties, you can use a custom model binder or a custom action filter. Here's a step-by-step guide to achieving this:
 
 ### Step 1: Create a Custom Action Filter
