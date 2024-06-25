@@ -1,3 +1,75 @@
+
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<JsonValidationMiddleware> _logger;
+
+        public JsonValidationMiddleware(RequestDelegate next, ILogger<JsonValidationMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                string body;
+                using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    body = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                // Log the received JSON body for debugging
+                _logger.LogInformation("Received JSON: " + body);
+
+                try
+                {
+                    var json = JObject.Parse(body);
+
+                    // Normalize property names to uppercase for case-insensitive comparison
+                    var normalizedPropertyNames = new HashSet<string>();
+                    foreach (var property in json.Properties())
+                    {
+                        var upperCaseName = property.Name.ToUpper();
+                        if (!normalizedPropertyNames.Add(upperCaseName))
+                        {
+                            context.Response.ContentType = "application/json"; // Set content type
+                            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                            await context.Response.WriteAsync($"{{ \"error\": \"Duplicate property '{property.Name}' is not allowed.\" }}");
+                            return;
+                        }
+                    }
+                }
+                catch (JsonReaderException ex)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Invalid JSON format.");
+                    _logger.LogError("JSON Parsing Exception: " + ex.Message);
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+    }
+}
+
+
+
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
