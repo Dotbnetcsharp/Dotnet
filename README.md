@@ -57,6 +57,67 @@ namespace YourNamespace.Middleware
 
 
 
+
+
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public JsonValidationMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                string body;
+                using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    body = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                try
+                {
+                    var json = JObject.Parse(body);
+
+                    if (json.Properties().GroupBy(p => p.Name).Any(g => g.Count() > 1))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync("Duplicate properties are not allowed.");
+                        return;
+                    }
+                }
+                catch (JsonReaderException)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Invalid JSON format.");
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+    }
+}
+
+
+
+
+
+
 To ensure that your API rejects JSON requests with duplicate properties and returns an appropriate error message, you can create a custom middleware to inspect and validate the JSON request body before it reaches the controller. This middleware will reject requests with duplicate properties and return a suitable error response.
 
 ### Step-by-Step Guide to Implement Custom Middleware
