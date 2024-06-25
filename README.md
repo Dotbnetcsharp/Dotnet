@@ -1,3 +1,77 @@
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<JsonValidationMiddleware> _logger;
+
+        public JsonValidationMiddleware(RequestDelegate next, ILogger<JsonValidationMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                string body;
+                using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    body = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                // Log the received JSON body for debugging
+                _logger.LogInformation("Received JSON: " + body);
+
+                try
+                {
+                    var json = JObject.Parse(body);
+
+                    // Check for duplicate properties using a loop
+                    var propertyNames = new HashSet<string>();
+                    foreach (var property in json.Properties())
+                    {
+                        if (!propertyNames.Add(property.Name))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                            await context.Response.WriteAsync("Duplicate properties are not allowed.");
+                            return;
+                        }
+                    }
+                }
+                catch (JsonReaderException ex)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Invalid JSON format.");
+                    _logger.LogError("JSON Parsing Exception: " + ex.Message);
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
