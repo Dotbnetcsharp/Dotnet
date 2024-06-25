@@ -1,182 +1,124 @@
-Sure, here is the full code setup to dynamically update the county dropdown based on the selected state using JavaScript.
+To enforce a rule in your ASP.NET Core API that rejects JSON input containing duplicate properties, you can use a custom model binder or a custom action filter. Here's a step-by-step guide to achieving this:
 
-### 1. Model Classes
+### Step 1: Create a Custom Action Filter
 
-First, ensure your model classes are defined correctly:
+Create a custom action filter that checks for duplicate properties in the JSON input.
 
-```csharp
-public class StatesAndCounties
-{
-    public string ReportName { get; set; }
-    public List<string> FileNames { get; set; }
-    public string SelectedFile { get; set; }
-    public List<StateData> States { get; set; }
-    public List<CountyData> Counties { get; set; }
-}
-
-public class StateData
-{
-    public string StateName { get; set; }
-}
-
-public class CountyData
-{
-    public string CountyName { get; set; }
-}
-```
-
-### 2. Controller
-
-Here is the controller code to handle the request and return JSON data:
+1. **Create the Filter:**
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
-using YourNamespace.Models; // Adjust the namespace as needed
-using YourNamespace.Services; // Adjust the namespace as needed
+using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Linq;
 
-public class StateAndCountiesController : Controller
+public class ValidateJsonFilter : ActionFilterAttribute
 {
-    private readonly DataService _service;
-
-    public StateAndCountiesController(DataService service)
+    public override void OnActionExecuting(ActionExecutingContext context)
     {
-        _service = service;
-    }
+        var request = context.HttpContext.Request;
+        request.EnableBuffering();
 
-    public IActionResult Index()
-    {
-        var model = new StatesAndCounties
+        using (var reader = new StreamReader(request.Body))
         {
-            States = _service.GetAllState(),
-            Counties = new List<CountyData>(), // Start with an empty counties list
-            ReportName = "Report Name",
-            FileNames = new List<string> { "ATSCV04_PROD_PlantInvestigativeSearchDetailsReport" }
-        };
-        return View(model);
-    }
+            var body = reader.ReadToEnd();
+            var json = JObject.Parse(body);
 
-    [HttpGet]
-    public IActionResult GetCounties(string state)
-    {
-        var counties = _service.GetAllCountyByState(state);
-        return Json(counties);
+            if (json.Properties().GroupBy(p => p.Name).Any(g => g.Count() > 1))
+            {
+                context.Result = new BadRequestObjectResult("Duplicate properties are not allowed.");
+                return;
+            }
+        }
+
+        request.Body.Position = 0;
+        base.OnActionExecuting(context);
     }
 }
 ```
 
-### 3. View (Index.cshtml)
+### Step 2: Apply the Filter Globally or per Controller/Action
 
-Here is the Razor view with JavaScript to dynamically update the county dropdown:
+1. **Globally:**
 
-```html
-@model YourNamespace.Models.StatesAndCounties
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Select State and County</title>
-</head>
-<body>
-    <div>
-        <label style="margin-right: 15px; margin-top: 10px;">Select State: </label>
-        <select id="stateDropdown" name="selectedState" onchange="fetchCounties()">
-            <option value="">-- Select State --</option>
-            @foreach (var state in Model.States)
-            {
-                <option value="@state.StateName">@state.StateName</option>
-            }
-        </select>
-    </div>
-
-    <div>
-        <label for="accnum">Account Number:</label>
-        <input type="text" id="accnum" name="accnum" />
-    </div>
-
-    <div>
-        <label style="margin-right: 15px; margin-top: 10px;">Select County: </label>
-        <select id="countyDropdown" name="selectedCounty">
-            <option value="">-- Select County --</option>
-        </select>
-    </div>
-
-    <div>
-        <input type="submit" value="Submit" />
-    </div>
-
-    <script type="text/javascript">
-        function fetchCounties() {
-            var selectedState = document.getElementById("stateDropdown").value;
-            var countyDropdown = document.getElementById("countyDropdown");
-            countyDropdown.innerHTML = '<option value="">-- Select County --</option>'; // Reset county dropdown
-
-            if (selectedState) {
-                fetch('@Url.Action("GetCounties", "StateAndCounties")?state=' + selectedState)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(county => {
-                            var option = document.createElement("option");
-                            option.value = county.CountyName;
-                            option.text = county.CountyName;
-                            countyDropdown.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching counties:', error));
-            }
-        }
-    </script>
-</body>
-</html>
-```
-
-### 4. Data Service
-
-Ensure your data service is correctly defined to provide the necessary data:
+In `Startup.cs`, apply the filter globally:
 
 ```csharp
-using System.Collections.Generic;
-using YourNamespace.Models; // Adjust the namespace as needed
-
-public class DataService
+public void ConfigureServices(IServiceCollection services)
 {
-    public List<StateData> GetAllState()
+    services.AddControllers(options =>
     {
-        // Mock data or retrieve from database
-        return new List<StateData>
-        {
-            new StateData { StateName = "State1" },
-            new StateData { StateName = "State2" },
-            new StateData { StateName = "State3" }
-        };
-    }
+        options.Filters.Add<ValidateJsonFilter>();
+    });
+}
+```
 
-    public List<CountyData> GetAllCountyByState(string state)
+2. **Per Controller/Action:**
+
+Alternatively, apply the filter to specific controllers or actions:
+
+```csharp
+[ApiController]
+[Route("[controller]")]
+public class YourController : ControllerBase
+{
+    [HttpPost]
+    [ValidateJsonFilter]
+    public IActionResult YourAction([FromBody] YourModel model)
     {
-        // Mock data or retrieve from database based on state
-        if (state == "State1")
-        {
-            return new List<CountyData>
-            {
-                new CountyData { CountyName = "County1" },
-                new CountyData { CountyName = "County2" }
-            };
-        }
-        else if (state == "State2")
-        {
-            return new List<CountyData>
-            {
-                new CountyData { CountyName = "County3" },
-                new CountyData { CountyName = "County4" }
-            };
-        }
-        else
-        {
-            return new List<CountyData>();
-        }
+        // Your action logic here
+        return Ok();
     }
 }
 ```
 
-### Summary
+### Step 3: Test Your API
 
-This setup includes model definitions, a controller to handle the data and JSON response, and a view with JavaScript to dynamically update the county dropdown based on the selected state. Make sure to adjust namespaces and file paths as necessary to fit your project structure.
+Now, when you send a JSON request with duplicate properties to your API, it will return a 400 Bad Request with the message "Duplicate properties are not allowed."
+
+### Additional Tips
+
+1. **Use `JsonSerializerSettings` to enforce strict JSON parsing:** This can catch some issues at the deserialization level, but it might not catch duplicate properties.
+
+2. **Unit Tests:** Write unit tests to ensure your filter works correctly.
+
+Here's an example of how to test the filter:
+
+```csharp
+using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+
+public class YourApiTests : IClassFixture<WebApplicationFactory<Startup>>
+{
+    private readonly HttpClient _client;
+
+    public YourApiTests(WebApplicationFactory<Startup> factory)
+    {
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task Post_WithDuplicateProperties_ShouldReturnBadRequest()
+    {
+        var json = @"{
+            ""UserId"": ""skunarrajak@firstam.com"",
+            ""Branch"": ""ANE"",
+            ""IsMergeResults"": true,
+            ""Property"": [{""ΑΡΝ"": ""10-00092-993-620-0000""}],
+            ""property"": [{""ΑΡΝ"": ""20-0-000-001.153""}]
+        }";
+
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _client.PostAsync("/your-endpoint", content);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+}
+```
+
+This approach ensures that your API will reject any JSON input containing duplicate properties.
