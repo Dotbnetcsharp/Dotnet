@@ -1,4 +1,112 @@
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<JsonValidationMiddleware> _logger;
+
+        public JsonValidationMiddleware(RequestDelegate next, ILogger<JsonValidationMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                string body;
+                using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    body = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                // Log the received JSON body for debugging
+                _logger.LogInformation("Received JSON: " + body);
+
+                try
+                {
+                    var json = JObject.Parse(body);
+
+                    // Check for duplicate properties recursively
+                    var errorMessage = CheckForDuplicateProperties(json);
+                    if (errorMessage != null)
+                    {
+                        context.Response.ContentType = "application/json"; // Set content type
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync($"{{ \"error\": \"{errorMessage}\" }}");
+                        return;
+                    }
+                }
+                catch (JsonReaderException ex)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Invalid JSON format.");
+                    _logger.LogError("JSON Parsing Exception: " + ex.Message);
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+
+        private string CheckForDuplicateProperties(JToken jsonToken, HashSet<string> parentPropertyNames = null)
+        {
+            var propertyNames = parentPropertyNames ?? new HashSet<string>();
+            
+            if (jsonToken is JObject jsonObject)
+            {
+                foreach (var property in jsonObject.Properties())
+                {
+                    var upperCaseName = property.Name.ToUpper();
+                    if (!propertyNames.Add(upperCaseName))
+                    {
+                        return $"Duplicate property '{property.Name}' is not allowed.";
+                    }
+                    
+                    var errorMessage = CheckForDuplicateProperties(property.Value, new HashSet<string>(propertyNames));
+                    if (errorMessage != null)
+                    {
+                        return errorMessage;
+                    }
+                }
+            }
+            else if (jsonToken is JArray jsonArray)
+            {
+                foreach (var item in jsonArray)
+                {
+                    var errorMessage = CheckForDuplicateProperties(item, new HashSet<string>(propertyNames));
+                    if (errorMessage != null)
+                    {
+                        return errorMessage;
+                    }
+                }
+            }
+            
+            return null;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+...........
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
