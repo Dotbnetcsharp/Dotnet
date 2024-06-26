@@ -1,5 +1,85 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""ΑΡΝ"": ""10-00092-993-620-0001"",
+            ""ΑΡΝ"": ""10-00092-993-620-0002"",
+            ""Details"": {
+                ""ΑΡΝ"": ""10-00092-993-620-0003"",
+                ""Nested"": {
+                    ""ΑΡΝ"": ""10-00092-993-620-0004""
+                }
+            }
+        }";
+
+        // Parse JSON string
+        JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+
+        // Check for duplicate keys
+        CheckForDuplicateKeys(root);
+    }
+
+    static void CheckForDuplicateKeys(JsonElement root)
+    {
+        Stack<JsonElement> stack = new Stack<JsonElement>();
+        stack.Push(root);
+
+        while (stack.Count > 0)
+        {
+            JsonElement element = stack.Pop();
+
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                // Track seen keys in the current object
+                HashSet<string> seenKeys = new HashSet<string>();
+                List<string> duplicateKeys = new List<string>();
+
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    if (!seenKeys.Add(property.Name))
+                    {
+                        duplicateKeys.Add(property.Name);
+                    }
+                }
+
+                // Print duplicate keys found in the current object
+                foreach (var key in duplicateKeys)
+                {
+                    Console.WriteLine($"Duplicate key found: {key}");
+                }
+
+                // Push nested objects onto the stack
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    stack.Push(property.Value);
+                }
+            }
+            else if (element.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement item in element.EnumerateArray())
+                {
+                    stack.Push(item);
+                }
+            }
+        }
+    }
+}
+
+
+........
+
+
+
+
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
