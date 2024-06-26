@@ -1,3 +1,72 @@
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""ΑΡΝ"": ""10-00092-993-620-0001"",
+            ""ΑΡΝ"": ""10-00092-993-620-0002"",
+            ""Details"": {
+                ""ΑΡΝ"": ""10-00092-993-620-0003"",
+                ""Nested"": {
+                    ""ΑΡΝ"": ""10-00092-993-620-0004""
+                }
+            }
+        }";
+
+        // Parse JSON string
+        JObject parsedJson = JObject.Parse(json);
+
+        // Check for duplicate keys
+        CheckForDuplicateKeys(parsedJson);
+    }
+
+    static void CheckForDuplicateKeys(JToken token)
+    {
+        if (token.Type == JTokenType.Object)
+        {
+            // Track seen keys in the current object
+            HashSet<string> seenKeys = new HashSet<string>();
+            List<string> duplicateKeys = new List<string>();
+
+            foreach (JProperty property in token.Children<JProperty>())
+            {
+                if (!seenKeys.Add(property.Name))
+                {
+                    duplicateKeys.Add(property.Name);
+                }
+            }
+
+            // Print duplicate keys found in the current object
+            foreach (var key in duplicateKeys)
+            {
+                Console.WriteLine($"Duplicate key found: {key}");
+            }
+
+            // Recursively check nested objects
+            foreach (JProperty property in token.Children<JProperty>())
+            {
+                CheckForDuplicateKeys(property.Value);
+            }
+        }
+        else if (token.Type == JTokenType.Array)
+        {
+            foreach (JToken item in token.Children())
+            {
+                CheckForDuplicateKeys(item);
+            }
+        }
+    }
+}
+
+
+,.........
+
 
 using System;
 using System.Collections.Generic;
