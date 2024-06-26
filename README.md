@@ -29,6 +29,67 @@ class Program
         JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
 
+        // Call the method to iterate and print all property names
+        PrintJsonPropertyNames(root);
+    }
+
+    static void PrintJsonPropertyNames(JsonElement element, string indent = "")
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    Console.WriteLine($"{indent}{property.Name}");
+                    PrintJsonPropertyNames(property.Value, indent + "  ");
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (JsonElement item in element.EnumerateArray())
+                {
+                    PrintJsonPropertyNames(item, indent + "  ");
+                }
+                break;
+            default:
+                // For primitive types and unsupported kinds, we don't need to print anything.
+                break;
+        }
+    }
+}
+
+......
+
+
+
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""UserId"": ""skunarrajak@firstam.com"",
+            ""Branch"": ""ANE"",
+            ""IsMergeResults"": true,
+            ""Property"": [
+                {
+                    ""ΑΡΝ"": ""10-00092-993-620-0000""
+                },
+                {
+                    ""ΑΡΝ"": ""10-00092-993-620-0000""
+                }
+            ],
+            ""Details"": {
+                ""APN"": ""123""
+            }
+        }";
+
+        // Parse JSON
+        JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+
         // Call the method to iterate and print all properties
         PrintJsonProperties(root);
     }
