@@ -1,4 +1,80 @@
 
+
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""UserId"": ""skunarrajak@firstam.com"",
+            ""Branch"": ""ANE"",
+            ""IsMergeResults"": true,
+            ""Property"": [
+                {
+                    ""ΑΡΝ"": ""10-00092-993-620-0000""
+                },
+                {
+                    ""ΑΡΝ"": ""10-00092-993-620-0000""
+                }
+            ],
+            ""Details"": {
+                ""APN"": ""123""
+            }
+        }";
+
+        // Parse JSON
+        JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+
+        // Call the method to iterate and print all properties
+        PrintJsonProperties(root);
+    }
+
+    static void PrintJsonProperties(JsonElement element, string indent = "")
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    Console.WriteLine($"{indent}{property.Name}:");
+                    PrintJsonProperties(property.Value, indent + "  ");
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (JsonElement item in element.EnumerateArray())
+                {
+                    PrintJsonProperties(item, indent + "  ");
+                }
+                break;
+            case JsonValueKind.String:
+                Console.WriteLine($"{indent}{element.GetString()}");
+                break;
+            case JsonValueKind.Number:
+                Console.WriteLine($"{indent}{element.GetDecimal()}");
+                break;
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                Console.WriteLine($"{indent}{element.GetBoolean()}");
+                break;
+            case JsonValueKind.Null:
+                Console.WriteLine($"{indent}null");
+                break;
+            default:
+                Console.WriteLine($"{indent}Unsupported ValueKind: {element.ValueKind}");
+                break;
+        }
+    }
+}
+
+
+
+
+
+
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
