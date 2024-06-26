@@ -1,6 +1,110 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""ΑΡΝ"": ""10-00092-993-620-0001"",
+            ""ΑΡΝ"": ""10-00092-993-620-0002"",
+            ""Details"": {
+                ""ΑΡΝ"": ""10-00092-993-620-0003""
+            }
+        }";
+
+        // Parse JSON string and check for duplicate keys
+        CheckForDuplicateKeys(json);
+    }
+
+    static void CheckForDuplicateKeys(string json)
+    {
+        HashSet<string> seenKeys = new HashSet<string>();
+        Dictionary<string, int> duplicateCounts = new Dictionary<string, int>();
+
+        // Remove whitespaces (optional step for cleaner JSON processing)
+        json = json.Replace(" ", "");
+
+        // Initialize variables to track current parsing state
+        bool inObject = false;
+        int objectDepth = 0;
+        int startIndex = 0;
+
+        for (int i = 0; i < json.Length; i++)
+        {
+            char currentChar = json[i];
+
+            if (currentChar == '{')
+            {
+                if (!inObject)
+                {
+                    inObject = true;
+                    objectDepth++;
+                    startIndex = i + 1;
+                }
+                else
+                {
+                    objectDepth++;
+                }
+            }
+            else if (currentChar == '}')
+            {
+                objectDepth--;
+
+                if (objectDepth == 0)
+                {
+                    inObject = false;
+                    string objectString = json.Substring(startIndex, i - startIndex + 1);
+
+                    // Process the current object string for duplicate keys
+                    ProcessObjectForDuplicates(objectString, seenKeys, duplicateCounts);
+                }
+            }
+        }
+
+        // Print duplicate keys found
+        foreach (var kvp in duplicateCounts)
+        {
+            Console.WriteLine($"Duplicate key found: {kvp.Key}");
+        }
+    }
+
+    static void ProcessObjectForDuplicates(string objectString, HashSet<string> seenKeys, Dictionary<string, int> duplicateCounts)
+    {
+        // Parse the object string into JSON element
+        JsonDocument doc = JsonDocument.Parse(objectString);
+        JsonElement root = doc.RootElement;
+
+        // Check for duplicate keys within the object
+        foreach (JsonProperty property in root.EnumerateObject())
+        {
+            string key = property.Name;
+
+            if (!seenKeys.Add(key))
+            {
+                // Key is a duplicate
+                if (duplicateCounts.ContainsKey(key))
+                {
+                    duplicateCounts[key]++;
+                }
+                else
+                {
+                    duplicateCounts[key] = 2; // Start count at 2 for the first duplicate found
+                }
+            }
+        }
+    }
+}
+
+
+
+
+...........
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 class Program
