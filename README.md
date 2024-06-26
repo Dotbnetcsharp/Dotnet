@@ -39,6 +39,111 @@ namespace YourNamespace.Middleware
                     var json = JObject.Parse(body);
 
                     // Check for duplicate properties
+                    var propertyNames = new HashSet<string>();
+                    if (HasDuplicateProperties(json, propertyNames))
+                    {
+                        context.Response.ContentType = "application/json"; // Set content type
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync("{ \"error\": \"Duplicate properties are not allowed.\" }");
+                        return;
+                    }
+                }
+                catch (JsonReaderException ex)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Invalid JSON format.");
+                    _logger.LogError("JSON Parsing Exception: " + ex.Message);
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+
+        private bool HasDuplicateProperties(JObject jsonObject, HashSet<string> propertyNames)
+        {
+            var stack = new Stack<JToken>();
+            stack.Push(jsonObject);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+
+                if (current is JObject obj)
+                {
+                    foreach (var property in obj.Properties())
+                    {
+                        var upperCaseName = property.Name.ToUpper();
+                        if (!propertyNames.Add(upperCaseName))
+                        {
+                            return true;
+                        }
+
+                        if (property.Value is JObject || property.Value is JArray)
+                        {
+                            stack.Push(property.Value);
+                        }
+                    }
+                }
+                else if (current is JArray array)
+                {
+                    foreach (var item in array)
+                    {
+                        stack.Push(item);
+                    }
+                }
+            }
+
+            return false;
+        }
+    }
+}
+
+
+
+
+
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
+namespace YourNamespace.Middleware
+{
+    public class JsonValidationMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<JsonValidationMiddleware> _logger;
+
+        public JsonValidationMiddleware(RequestDelegate next, ILogger<JsonValidationMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.Request.ContentType != null && context.Request.ContentType.Contains("application/json"))
+            {
+                context.Request.EnableBuffering();
+
+                string body;
+                using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
+                {
+                    body = await reader.ReadToEndAsync();
+                    context.Request.Body.Position = 0;
+                }
+
+                // Log the received JSON body for debugging
+                _logger.LogInformation("Received JSON: " + body);
+
+                try
+                {
+                    var json = JObject.Parse(body);
+
+                    // Check for duplicate properties
                     var errorMessage = CheckForDuplicateProperties(json);
                     if (errorMessage != null)
                     {
