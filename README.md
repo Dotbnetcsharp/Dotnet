@@ -1,3 +1,62 @@
+
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""ΑΡΝ"": ""10-00092-993-620-0001"",
+            ""ΑΡΝ"": ""10-00092-993-620-0002"",
+            ""Details"": {
+                ""ΑΡΝ"": ""10-00092-993-620-0003""
+            }
+        }";
+
+        // Parse JSON string and check for duplicate keys
+        CheckForDuplicateKeys(json);
+    }
+
+    static void CheckForDuplicateKeys(string json)
+    {
+        Dictionary<string, int> keyCounts = new Dictionary<string, int>();
+
+        // Regular expression to match JSON object property names
+        Regex regex = new Regex("\"([^\"]+)\":");
+
+        // Find all matches of property names in JSON string
+        MatchCollection matches = regex.Matches(json);
+
+        foreach (Match match in matches)
+        {
+            string key = match.Groups[1].Value;
+
+            if (keyCounts.ContainsKey(key))
+            {
+                keyCounts[key]++;
+            }
+            else
+            {
+                keyCounts[key] = 1;
+            }
+        }
+
+        // Print keys that have more than one occurrence (duplicates)
+        foreach (var kvp in keyCounts)
+        {
+            if (kvp.Value > 1)
+            {
+                Console.WriteLine($"Duplicate key found: {kvp.Key}");
+            }
+        }
+    }
+}
+
+
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
