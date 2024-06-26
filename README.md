@@ -7,6 +7,63 @@ class Program
     static void Main()
     {
         string json = @"
+        [
+            {
+                ""ΑΡΝ"": ""10-00092-993-620-0001"",
+                ""ΑΡΝ"": ""10-00092-993-620-0002""
+            },
+            {
+                ""ΑΡΝ"": ""10-00092-993-620-0003""
+            }
+        ]";
+
+        // Parse JSON
+        JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+
+        // Call the method to find and print duplicate property names in the same scope
+        FindAndPrintDuplicateProperties(root);
+    }
+
+    static void FindAndPrintDuplicateProperties(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                HashSet<string> seenProperties = new HashSet<string>();
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    string propertyName = property.Name;
+                    if (!seenProperties.Add(propertyName)) // If it returns false, it means it's a duplicate
+                    {
+                        Console.WriteLine($"Duplicate property found: {propertyName}");
+                    }
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (JsonElement item in element.EnumerateArray())
+                {
+                    // Recursively check each item in the array
+                    FindAndPrintDuplicateProperties(item);
+                }
+                break;
+            default:
+                // For primitive types and unsupported kinds, we don't need to check for duplicates.
+                break;
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        string json = @"
         {
             ""UserId"": ""skunarrajak@firstam.com"",
             ""Branch"": ""ANE"",
