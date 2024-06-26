@@ -1,5 +1,71 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
 
+class Program
+{
+    static void Main()
+    {
+        string json = @"
+        {
+            ""UserId"": ""skunarrajak@firstam.com"",
+            ""Branch"": ""ANE"",
+            ""IsMergeResults"": true,
+            ""Property"": [
+                {
+                    ""ΑΡΝ"": ""10-00092-993-620-0000""
+                },
+                {
+                    ""ΑΡΝ"": ""10-00092-993-620-0000""
+                }
+            ],
+            ""Details"": {
+                ""APN"": ""123""
+            }
+        }";
 
+        // Parse JSON
+        JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+
+        // Call the method to find and print duplicate property names
+        FindAndPrintDuplicateProperties(root);
+    }
+
+    static void FindAndPrintDuplicateProperties(JsonElement element, HashSet<string> seenProperties = null)
+    {
+        if (seenProperties == null)
+            seenProperties = new HashSet<string>();
+
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    string propertyName = property.Name;
+                    if (!seenProperties.Add(propertyName)) // If it returns false, it means it's a duplicate
+                    {
+                        Console.WriteLine($"Duplicate property found: {propertyName}");
+                    }
+
+                    // Recursively check nested properties
+                    FindAndPrintDuplicateProperties(property.Value, seenProperties);
+                }
+                break;
+            case JsonValueKind.Array:
+                foreach (JsonElement item in element.EnumerateArray())
+                {
+                    // Recursively check items in array
+                    FindAndPrintDuplicateProperties(item, seenProperties);
+                }
+                break;
+            default:
+                // For primitive types and unsupported kinds, we don't need to check for duplicates.
+                break;
+        }
+    }
+}
+.....
 using System;
 using System.Text.Json;
 
