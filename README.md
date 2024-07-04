@@ -1,6 +1,53 @@
 
 DECLARE @dbName NVARCHAR(255);
 DECLARE @sql NVARCHAR(MAX);
+DECLARE @successLog TABLE (DatabaseName NVARCHAR(255));
+DECLARE @errorLog TABLE (DatabaseName NVARCHAR(255), ErrorMsg NVARCHAR(MAX));
+
+DECLARE db_cursor CURSOR FOR
+SELECT name
+FROM sys.databases;
+
+OPEN db_cursor;
+FETCH NEXT FROM db_cursor INTO @dbName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    BEGIN TRY
+        SET @sql = 'USE [' + @dbName + '];';
+        EXEC sp_executesql @sql;
+        PRINT 'Successfully connected to ' + @dbName;
+        INSERT INTO @successLog (DatabaseName)
+        VALUES (@dbName);
+    END TRY
+    BEGIN CATCH
+        PRINT 'Failed to connect to ' + @dbName;
+        INSERT INTO @errorLog (DatabaseName, ErrorMsg)
+        VALUES (@dbName, ERROR_MESSAGE());
+    END CATCH;
+    FETCH NEXT FROM db_cursor INTO @dbName;
+END;
+
+CLOSE db_cursor;
+DEALLOCATE db_cursor;
+
+-- Display the successful connections
+PRINT 'Successful Connections:';
+SELECT * FROM @successLog;
+
+-- Display the failed connections
+PRINT 'Failed Connections:';
+SELECT * FROM @errorLog;
+
+
+
+
+
+
+
+
+DECLARE @dbName NVARCHAR(255);
+DECLARE @sql NVARCHAR(MAX);
 DECLARE @errorLog TABLE (DatabaseName NVARCHAR(255), ErrorMsg NVARCHAR(MAX));
 
 DECLARE db_cursor CURSOR FOR
