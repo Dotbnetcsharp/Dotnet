@@ -1,3 +1,35 @@
+if (data.TitleDocs != null && data.TitleDocs.Count() > 0) 
+{
+    HashSet<int> existingDocumentIds = titledocs.Select(td => td.DocumentId).ToHashSet();
+
+    // Pre-check for duplicates
+    bool hasDuplicates = data.TitleDocs.Any(doc => existingDocumentIds.Contains(doc.DocumentId));
+
+    if (hasDuplicates)
+    {
+        Console.WriteLine("One or more documents already present in the list. Skipping the loop.");
+    }
+    else
+    {
+        foreach (var doc in data.TitleDocs)
+        {
+            TitleDoc titledoc = new TitleDoc
+            {
+                DocumentId = doc.DocumentId,
+                // Copy other properties if necessary
+            };
+
+            titledocs.Add(titledoc);
+        }
+    }
+}
+
+
+
+
+
+
+
 if (data.TitleDocs != null && data.TitleDocs.Count() > 0)
 {
     HashSet<int> documentIds = new HashSet<int>();
