@@ -1,3 +1,44 @@
+if (data.TitleDocs != null && data.TitleDocs.Count() > 0)
+{
+    HashSet<int> documentIds = new HashSet<int>();
+    List<TitleDoc> titledocs = new List<TitleDoc>();
+
+    // Loop to check for duplicates
+    foreach (var doc in data.TitleDocs)
+    {
+        if (!documentIds.Contains(doc.DocumentId))
+        {
+            documentIds.Add(doc.DocumentId);
+        }
+        else
+        {
+            Console.WriteLine($"Document with ID {doc.DocumentId} is already present and will not be added to the list.");
+        }
+    }
+
+    // Loop to add documents to titledocs
+    foreach (var doc in data.TitleDocs)
+    {
+        if (documentIds.Contains(doc.DocumentId))
+        {
+            TitleDoc titledoc = new TitleDoc();
+            titledoc = doc;
+            titledocs.Add(titledoc);
+
+            // Once added, remove it from the set to avoid duplicate entries
+            documentIds.Remove(doc.DocumentId);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 
 if (data.TitleDocs != null && data.TitleDocs.Count() > 0) 
 {
