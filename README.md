@@ -1,4 +1,51 @@
 
+if (data.TitleDocs != null && data.TitleDocs.Count() > 0) 
+{
+    HashSet<int> documentIds = new HashSet<int>();
+    List<TitleDoc> titledocs = new List<TitleDoc>();
+
+    foreach (var doc in data.TitleDocs)
+    {
+        if (documentIds.Contains(doc.DocumentId))
+        {
+            Console.WriteLine($"Document with ID {doc.DocumentId} is already present and will not be added to the list.");
+        }
+        else
+        {
+            TitleDoc titledoc = new TitleDoc();
+            titledoc = doc;
+            titledocs.Add(titledoc);
+            documentIds.Add(doc.DocumentId);
+        }
+    }
+}
+
+
+
+
+
+
+if (data.TitleDocs != null && data.TitleDocs.Count() > 0) 
+{
+    HashSet<int> documentIds = new HashSet<int>();
+    List<TitleDoc> titledocs = new List<TitleDoc>();
+
+    foreach (var doc in data.TitleDocs)
+    {
+        if (documentIds.Add(doc.DocumentId)) // Add returns false if the item already exists
+        {
+            titledocs.Add(doc);
+        }
+    }
+}
+
+
+
+
+
+
+
+
 DECLARE @dbName NVARCHAR(255);
 DECLARE @sql NVARCHAR(MAX);
 DECLARE @successLog TABLE (DatabaseName NVARCHAR(255));
