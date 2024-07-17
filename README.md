@@ -1,3 +1,10 @@
+
+bool allSameTransactionHistoryId = itemResponses.All(item => item.transitionhystoryId == itemResponses.First().transitionhystoryId);
+
+
+
+
+
 if (data.TitleDocs != null && data.TitleDocs.Count() > 0) 
 {
     HashSet<int> existingDocumentIds = titledocs.Select(td => td.DocumentId).ToHashSet();
