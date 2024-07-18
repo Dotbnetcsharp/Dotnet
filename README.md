@@ -1,3 +1,47 @@
+[ApiController]
+[Route("[controller]")]
+public class DataController : ControllerBase
+{
+    private readonly SharedProperties _sharedProperties;
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public DataController(SharedProperties sharedProperties, IHttpClientFactory httpClientFactory)
+    {
+        _sharedProperties = sharedProperties;
+        _httpClientFactory = httpClientFactory;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        var apnSearchRequest = new { APN = "someValue" }; // Example request object
+        var apnSearchResponse = new APNTypeAheadResponse();
+
+        apnSearchResponse.APNs = await CallTypeAheadAPNSearchAzureApi(apnSearchRequest.APN);
+
+        // Assign values to shared properties
+        _sharedProperties.APNs = apnSearchResponse.APNs;
+
+        return Ok(apnSearchResponse);
+    }
+
+    private async Task<List<string>> CallTypeAheadAPNSearchAzureApi(string apn)
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetAsync($"https://example.com/api/apnsearch?apn={apn}");
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadFromJsonAsync<List<string>>();
+            return data;
+        }
+        return new List<string>();
+    }
+}
+
+
+
+
+
 
 bool allSameTransactionHistoryId = itemResponses.All(item => item.transitionhystoryId == itemResponses.First().transitionhystoryId);
 
