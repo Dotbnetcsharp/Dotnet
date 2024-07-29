@@ -1,3 +1,69 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+
+[ApiController]
+[Route("[controller]")]
+public class UsersController : ControllerBase
+{
+    [HttpPost]
+    public IActionResult Post([FromBody] JsonElement jsonElement)
+    {
+        // Check if the JSON has the 'Name' property as an array
+        if (jsonElement.TryGetProperty("Name", out JsonElement namesElement) && namesElement.ValueKind == JsonValueKind.Array)
+        {
+            // Create a list to keep track of unique names
+            var uniqueNameList = new List<string>();
+            var duplicateNameMessages = new List<string>();
+
+            // Iterate through each name in the array
+            foreach (var name in namesElement.EnumerateArray())
+            {
+                // Convert the name object to a serialized string for comparison
+                var nameString = JsonSerializer.Serialize(name);
+
+                if (uniqueNameList.Contains(nameString))
+                {
+                    // If the name is already in the unique list, add a duplicate message
+                    duplicateNameMessages.Add($"Duplicate entry detected: {nameString}");
+                }
+                else
+                {
+                    // Add the name to the unique list if not already present
+                    uniqueNameList.Add(nameString);
+                }
+            }
+
+            // Check for duplicates and process unique entries
+            if (duplicateNameMessages.Any())
+            {
+                // Return duplicate messages if any duplicates were found
+                return Ok(new { Messages = duplicateNameMessages });
+            }
+            else
+            {
+                // Process the unique names here
+                // You can implement any processing logic you need for unique entries
+
+                return Ok(new { Message = "User data processed successfully.", UniqueEntries = uniqueNameList });
+            }
+        }
+
+        // Return an error if the 'Name' property is missing or not an array
+        return BadRequest(new { Message = "'Name' property missing or not an array." });
+    }
+}
+
+
+.......
+
+
+
+
+
+
+
 [ApiController]
 [Route("[controller]")]
 public class DataController : ControllerBase
