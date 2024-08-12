@@ -1,3 +1,32 @@
+-- Declare and populate the table-valued parameters
+DECLARE @instrument_number AS [dbo].[udt_instrnum];
+DECLARE @book_page AS [dbo].[udt_bookpage];
+
+-- Example data for instrument numbers
+INSERT INTO @instrument_number (instrument_number)
+VALUES 
+    ('123456789'),
+    ('987654321');
+
+-- Example data for books and pages
+INSERT INTO @book_page (book, page)
+VALUES 
+    ('Book1', 'Page1'),
+    ('Book2', 'Page2');
+
+-- Now execute the stored procedure
+EXEC [dbo].[SP_usp_GetDocumentByInstrument]
+    @FIPS = 12345, -- Replace with actual FIPS value
+    @instrument_number = @instrument_number,
+    @book_page = @book_page;
+
+
+
+
+
+
+
+
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
