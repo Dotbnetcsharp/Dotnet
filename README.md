@@ -1,5 +1,15 @@
 
 var isDuplicate = await _context.Customers
+    .Where(c => c.CustomerNumber == customerNumber 
+                || c.SourceUID == sourceUID 
+                || c.Mobile == mobile)
+    .AnyAsync(c => c.Id != selectedRowId);
+
+
+
+
+
+var isDuplicate = await _context.Customers
     .GroupBy(c => new { c.CustomerNumber, c.SourceUID, c.Mobile })
     .AnyAsync(g => g.Count() > 1);
 
