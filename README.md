@@ -1,4 +1,11 @@
--- Declare and populate the table-valued parameters
+
+var isDuplicate = await _context.Customers
+    .GroupBy(c => new { c.CustomerNumber, c.SourceUID, c.Mobile })
+    .AnyAsync(g => g.Count() > 1);
+
+
+
+wo-- Declare and populate the table-valued parameters
 DECLARE @instrument_number AS [dbo].[udt_instrnum];
 DECLARE @book_page AS [dbo].[udt_bookpage];
 
