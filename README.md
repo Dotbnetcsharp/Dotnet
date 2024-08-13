@@ -1,4 +1,41 @@
+var allAPNnos = docs?.Documents?.Select(doc => doc.LegalDescAPN).ToList() ?? new List<string>();
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialchars(); // Assuming RemoveAPNSpecialchars() is an extension method
+
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted("",
+            sanitizedAPNno, searchRequest.CountyFips, RequestSearchType.APN);
+        
+        // Process the result as needed
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 bool isExist = context.Customers
+
+
+
+
+
+ 
+    
+    
+    
     .Where(x => 
         (x.CustomerAccountNumber == customerUpdateRequests.CustomerAccount.Number || 
          x.SourceAccountNumber == customerUpdateRequests.SourceAccount.Number) &&
