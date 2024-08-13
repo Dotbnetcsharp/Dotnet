@@ -1,4 +1,13 @@
-
+bool isExist = context.Customers
+    .Where(x => 
+        (x.CustomerAccountNumber == customerUpdateRequests.CustomerAccount.Number || 
+         x.SourceAccountNumber == customerUpdateRequests.SourceAccount.Number) &&
+        (x.ValidationId == (byte)customerUpdateRequests.ValidationType || 
+         x.ValidationId == null) &&
+        (x.Notes == customerUpdateRequests.Notes || 
+         x.Notes == null)
+    )
+    .Count() > 0;
 var isDuplicate = await _context.Customers
     .Where(c => c.CustomerNumber == customerNumber 
                 || c.SourceUID == sourceUID 
