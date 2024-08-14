@@ -1,3 +1,115 @@
+// Initialize lists to hold merged results for each section
+var mergedDocuments = new List<DocumentType>(); // Replace with your actual Document type
+var mergedProperties = new List<PropertyType>(); // Replace with your actual Property type
+var mergedParties = new List<PartyType>(); // Replace with your actual Party type
+var mergedReferences = new List<ReferenceType>(); // Replace with your actual Reference type
+
+int recordNoCounter = 1; // Start RecordNo from 1
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
+
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted("",
+            sanitizedAPNno, searchRequest.CountyFips, RequestSearchType.APN);
+
+        if (result != null)
+        {
+            // Increment RecordNo and add Documents
+            if (result.Documents != null)
+            {
+                foreach (var doc in result.Documents)
+                {
+                    doc.RecordNo = recordNoCounter++;
+                    mergedDocuments.Add(doc);
+                }
+            }
+
+            // Increment RecordNo and add Properties
+            if (result.Property != null)
+            {
+                foreach (var prop in result.Property)
+                {
+                    prop.RecordNo = recordNoCounter++;
+                    mergedProperties.Add(prop);
+                }
+            }
+
+            // Increment RecordNo and add Parties
+            if (result.Party != null)
+            {
+                foreach (var party in result.Party)
+                {
+                    party.RecordNo = recordNoCounter++;
+                    mergedParties.Add(party);
+                }
+            }
+
+            // Increment RecordNo and add References
+            if (result.References != null)
+            {
+                foreach (var reference in result.References)
+                {
+                    reference.RecordNo = recordNoCounter++;
+                    mergedReferences.Add(reference);
+                }
+            }
+        }
+    }
+}
+
+// After processing, mergedDocuments, mergedProperties, mergedParties, and mergedReferences
+// contain all the merged and updated records.
+
+
+
+
+
+// Initialize a list to hold the merged results
+var mergedResults = new List<DBDocumentsModelSplitted>();
+
+int recordNoCounter = 1; // Start the record number from 1
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars(); 
+
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted("",
+            sanitizedAPNno, searchRequest.CountyFips, RequestSearchType.APN);
+
+        if (result != null && result.Documents != null && result.Documents.Count > 0)
+        {
+            foreach (var doc in result.Documents)
+            {
+                // Increment RecordNo
+                doc.RecordNo = recordNoCounter++;
+
+                // Add to merged results
+                mergedResults.Add(doc);
+            }
+        }
+    }
+}
+
+// Now mergedResults contains all the records with incremented RecordNo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var allAPNnos = docs?.Documents?.Select(doc => doc.LegalDescAPN).ToList() ?? new List<string>();
 
 foreach (var APNno in allAPNnos)
