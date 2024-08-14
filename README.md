@@ -1,3 +1,180 @@
+
+// Initialize lists to hold merged results for each section
+var mergedDocuments = new List<DocumentType>(); // Replace with your actual Document type
+var mergedProperties = new List<PropertyType>(); // Replace with your actual Property type
+var mergedParties = new List<PartyType>(); // Replace with your actual Party type
+var mergedReferences = new List<ReferenceType>(); // Replace with your actual Reference type
+
+int recordNoCounter = 1; // Start RecordNo from 1
+bool isFirstAPN = true; // Flag to track if it's the first APN
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
+
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted("",
+            sanitizedAPNno, searchRequest.CountyFips, RequestSearchType.APN);
+
+        if (result != null)
+        {
+            // Add Documents
+            if (result.Documents != null)
+            {
+                foreach (var doc in result.Documents)
+                {
+                    if (!isFirstAPN)
+                    {
+                        doc.RecordNo = recordNoCounter++;
+                    }
+                    mergedDocuments.Add(doc);
+                }
+            }
+
+            // Add Properties
+            if (result.Property != null)
+            {
+                foreach (var prop in result.Property)
+                {
+                    if (!isFirstAPN)
+                    {
+                        prop.RecordNo = recordNoCounter++;
+                    }
+                    mergedProperties.Add(prop);
+                }
+            }
+
+            // Add Parties
+            if (result.Party != null)
+            {
+                foreach (var party in result.Party)
+                {
+                    if (!isFirstAPN)
+                    {
+                        party.RecordNo = recordNoCounter++;
+                    }
+                    mergedParties.Add(party);
+                }
+            }
+
+            // Add References
+            if (result.References != null)
+            {
+                foreach (var reference in result.References)
+                {
+                    if (!isFirstAPN)
+                    {
+                        reference.RecordNo = recordNoCounter++;
+                    }
+                    mergedReferences.Add(reference);
+                }
+            }
+        }
+
+        // After processing the first APN, set the flag to false
+        isFirstAPN = false;
+    }
+}
+
+// Now mergedDocuments, mergedProperties, mergedParties, and mergedReferences
+// contain all the merged records, with RecordNo incremented for subsequent APNs.
+
+
+
+
+
+
+// Initialize lists to hold merged results for each section
+var mergedDocuments = new List<DocumentType>(); // Replace with your actual Document type
+var mergedProperties = new List<PropertyType>(); // Replace with your actual Property type
+var mergedParties = new List<PartyType>(); // Replace with your actual Party type
+var mergedReferences = new List<ReferenceType>(); // Replace with your actual Reference type
+
+int recordNoCounter = 1; // Start RecordNo from 1
+bool isFirstAPN = true; // Flag to track if it's the first APN
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
+
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted("",
+            sanitizedAPNno, searchRequest.CountyFips, RequestSearchType.APN);
+
+        if (result != null)
+        {
+            // Add Documents
+            if (result.Documents != null)
+            {
+                foreach (var doc in result.Documents)
+                {
+                    if (!isFirstAPN)
+                    {
+                        doc.RecordNo = recordNoCounter++;
+                    }
+                    mergedDocuments.Add(doc);
+                }
+            }
+
+            // Add Properties
+            if (result.Property != null)
+            {
+                foreach (var prop in result.Property)
+                {
+                    if (!isFirstAPN)
+                    {
+                        prop.RecordNo = recordNoCounter++;
+                    }
+                    mergedProperties.Add(prop);
+                }
+            }
+
+            // Add Parties
+            if (result.Party != null)
+            {
+                foreach (var party in result.Party)
+                {
+                    if (!isFirstAPN)
+                    {
+                        party.RecordNo = recordNoCounter++;
+                    }
+                    mergedParties.Add(party);
+                }
+            }
+
+            // Add References
+            if (result.References != null)
+            {
+                foreach (var reference in result.References)
+                {
+                    if (!isFirstAPN)
+                    {
+                        reference.RecordNo = recordNoCounter++;
+                    }
+                    mergedReferences.Add(reference);
+                }
+            }
+        }
+
+        // After processing the first APN, set the flag to false
+        isFirstAPN = false;
+    }
+}
+
+
+
+// Now mergedDocuments, mergedProperties, mergedParties, and mergedReferences
+// contain all the merged records, with RecordNo incremented for subsequent APNs.
+
+
+
+
+
+
+
+
 // Initialize lists to hold merged results for each section
 var mergedDocuments = new List<DocumentType>(); // Replace with your actual Document type
 var mergedProperties = new List<PropertyType>(); // Replace with your actual Property type
