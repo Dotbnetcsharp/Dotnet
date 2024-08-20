@@ -1,3 +1,49 @@
+var mergedResults = new DBDocumentsModelSplitted
+{
+    Documents = new List<DBDocumentModelInfo>(),
+    Party = new List<DBPartyModel>(),
+    Property = new List<DBPropertyModel>(),
+    References = new List<DBReferenceModel>(),
+    UniqueDocumentCount = 0
+};
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted(
+            sanitizedAPNno, documentSearchRequest.CountyFips, RequestSearchType.APN);
+
+        if (result != null)
+        {
+            mergedResults.Documents.AddRange(result.Documents);
+            mergedResults.Party.AddRange(result.Party);
+            mergedResults.Property.AddRange(result.Property);
+            mergedResults.References.AddRange(result.References);
+            mergedResults.UniqueDocumentCount += result.UniqueDocumentCount;
+        }
+    }
+    else
+    {
+        throw new BadRequestException("EC-03", "Instrument Search", "No property found associated with the provided APN.");
+    }
+}
+
+// Now pass the single merged result to the ConvertDBModelToDocumentEntitySplitted method
+var multiResults = ConvertDBModelToDocumentEntitySplitted(mergedResults, searchId);
+
+
+
+
+
+
+
+
+
+
+
+
 
 var allAPNnos = docs?.Documents?.Select(doc => doc.LegalDescAPN).ToList();
 var mergedResults = new List<DBDocumentsModelSplitted>();
