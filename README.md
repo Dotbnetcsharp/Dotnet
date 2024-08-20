@@ -1,4 +1,33 @@
 
+var allAPNnos = docs?.Documents?.Select(doc => doc.LegalDescAPN).ToList();
+var mergedResults = new List<DBDocumentsModelSplitted>();
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
+    {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted(
+            sanitizedAPNno, documentSearchRequest.CountyFips, RequestSearchType.APN);
+
+        // Assuming result is of type DBDocumentsModelSplitted
+        if (result != null)
+        {
+            mergedResults.Add(result);
+        }
+    }
+    else
+    {
+        throw new BadRequestException("EC-03", "Instrument Search", "No property found associated with the provided APN.");
+    }
+}
+
+// Now pass the mergedResults to the ConvertDBModelToDocumentEntitySplitted method
+var multiResults = ConvertDBModelToDocumentEntitySplitted(mergedResults, searchId);
+
+
+
+
 // Initialize lists to hold merged results for each section
 var mergedDocuments = new List<DocumentType>(); // Replace with your actual Document type
 var mergedProperties = new List<PropertyType>(); // Replace with your actual Property type
@@ -11,7 +40,31 @@ bool isFirstAPN = true; // Flag to track if it's the first APN
 foreach (var APNno in allAPNnos)
 {
     if (!string.IsNullOrWhiteSpace(APNno))
+    {var allAPNnos = docs?.Documents?.Select(doc => doc.LegalDescAPN).ToList();
+var mergedResults = new List<DBDocumentsModelSplitted>();
+
+foreach (var APNno in allAPNnos)
+{
+    if (!string.IsNullOrWhiteSpace(APNno))
     {
+        var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
+        var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted(
+            sanitizedAPNno, documentSearchRequest.CountyFips, RequestSearchType.APN);
+
+        // Assuming result is of type DBDocumentsModelSplitted
+        if (result != null)
+        {
+            mergedResults.Add(result);
+        }
+    }
+    else
+    {
+        throw new BadRequestException("EC-03", "Instrument Search", "No property found associated with the provided APN.");
+    }
+}
+
+// Now pass the mergedResults to the ConvertDBModelToDocumentEntitySplitted method
+var multiResults = ConvertDBModelToDocumentEntitySplitted(mergedResults, searchId
         var sanitizedAPNno = APNno.RemoveAPNSpecialChars();
 
         var result = await _documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted("",
