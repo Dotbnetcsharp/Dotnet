@@ -1,3 +1,84 @@
+
+var Apns = docs?.Documents?
+    .Where(p => string.IsNullOrEmpty(p.LegalDescAPN))
+    .Select(p => p.LegalDescAPN)
+    .Distinct()
+    .ToList();
+
+Apns.Add("3000141012001007");
+Apns.Add("10000929936200000");
+
+foreach (string apn in Apns)
+{
+    // Assuming RemoveAPNSpecialChars() is an extension method
+    var sanitizedAPN = apn.RemoveAPNSpecialChars();
+
+    var result = await documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted(
+        searchId,
+        documentSearchRequest.CountyFips,
+        RequestSearchType.APN,
+        sanitizedAPN,
+        null
+    );
+
+    if (result != null)
+    {
+        // Initialize docinfo if it is null
+        if (docinfo == null)
+        {
+            docinfo = result;
+        }
+        else
+        {
+            // Handle Documents
+            if (result.Documents?.Count > 0)
+            {
+                foreach (var doc in result.Documents)
+                {
+                    doc.RecordNumber += docinfo.Documents.Last().RecordNumber;
+                }
+                docinfo.Documents.AddRange(result.Documents);
+            }
+
+            // Handle Property
+            if (result.Property?.Count > 0)
+            {
+                foreach (var prop in result.Property)
+                {
+                    prop.RecordNumber += docinfo.Documents.Last().RecordNumber;
+                }
+                docinfo.Property.AddRange(result.Property);
+            }
+
+            // Handle Party
+            if (result.Party?.Count > 0)
+            {
+                foreach (var party in result.Party)
+                {
+                    party.RecordNumber += docinfo.Documents.Last().RecordNumber;
+                }
+                docinfo.Party.AddRange(result.Party);
+            }
+
+            // Handle References
+            if (result.References?.Count > 0)
+            {
+                foreach (var reference in result.References)
+                {
+                    reference.RecordNumber += docinfo.Documents.Last().RecordNumber;
+                }
+                docinfo.References.AddRange(result.References);
+            }
+
+            // Update UniqueDocumentCount
+            docinfo.UniqueDocumentCount += result.UniqueDocumentCount;
+        }
+    }
+}
+
+
+..........
+
 var mergedResults = new DBDocumentsModelSplitted
 {
     Documents = new List<DBDocumentModelInfo>(),
