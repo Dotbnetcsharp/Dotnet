@@ -1,4 +1,34 @@
 
+var allpropertyIDs = docs?.Documents?
+    .SelectMany(doc => doc.PropertyRefId.ToString().Split(','))
+    .Distinct()
+    .ToList();
+
+if (allpropertyIDs != null && allpropertyIDs.Any())
+{
+    var tasks = allpropertyIDs
+        .Where(id => !string.IsNullOrWhiteSpace(id))
+        .Select(async propertyID => 
+            await documentDataService.GetGroupDocumentsByPropertyIdOrAPNSplitted(
+                "",
+                propertyID,
+                null, 
+                documentSearchRequest.CountyFips, 
+                RequestSearchType.APN));
+
+    var results = await Task.WhenAll(tasks);
+
+    // Now `results` contains an array of all results returned by the method
+}
+
+
+
+
+
+
+
+
+
 int iterationCounter = 1; // Initialize the iteration counter
 
 if (result.Documents != null)
