@@ -1,4 +1,22 @@
 
+int iterationCounter = 1; // Initialize the iteration counter
+
+if (result.Documents != null)
+{
+    foreach (var doc in result.Documents)
+    {
+        doc.RecordNumber = iterationCounter; // Set the RecordNumber to the current iteration count
+        mergedResults.Documents.Add(doc);
+    }
+
+    iterationCounter++; // Increment the iteration counter after processing all documents in the current iteration
+}
+
+
+
+
+
+
 var Apns = docs?.Documents?
     .Where(p => string.IsNullOrEmpty(p.LegalDescAPN))
     .Select(p => p.LegalDescAPN)
