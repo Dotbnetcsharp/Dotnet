@@ -1,4 +1,31 @@
 
+DECLARE @instrument_number AS [dbo].[udt_instrnum];
+DECLARE @book_page AS [dbo].[udt_bookpage];
+
+-- Insert values into the table variables
+INSERT INTO @instrument_number (instrument_number) VALUES ('1706647');
+INSERT INTO @book_page (book, page) VALUES ('', '');
+
+-- Create a temporary table to store the result from the stored procedure
+CREATE TABLE #TempResult (
+    refid INT
+    -- Other columns that the stored procedure returns should be declared here as well
+);
+
+-- Insert the result of the stored procedure into the temporary table
+INSERT INTO #TempResult
+EXEC dbo.usp_GetDocumentByInstrumentOrBookPage_v2_batch @FIPS = 1003, @instrument_number, @instrument, @book_page;
+
+-- Now select only the refid column
+SELECT refid FROM #TempResult;
+
+-- Drop the temporary table after you're done
+DROP TABLE #TempResult;
+
+
+
+
+
 var allpropertyIDs = docs?.Documents?
     .SelectMany(doc => doc.PropertyRefId.ToString().Split(','))
     .Distinct()
