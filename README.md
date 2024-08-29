@@ -1,4 +1,8 @@
-
+var allpropertyIDs = docs?.Documents
+    ?.Where(doc => doc.PropertyRefId != null)
+    ?.SelectMany(doc => doc.PropertyRefId.ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+    ?.Distinct()
+    ?.ToList();
 
 var allpropertyIDs = docs?.Documents
     ?.Where(doc => doc.PropertyRefId != null) // Filter out docs with null PropertyRefId
