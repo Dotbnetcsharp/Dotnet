@@ -1,4 +1,14 @@
 
+
+var allpropertyIDs = docs?.Documents
+    ?.Where(doc => doc.PropertyRefId != null) // Filter out docs with null PropertyRefId
+    ?.SelectMany(doc => doc.PropertyRefId.ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) // Split and remove empty entries
+    ?.Distinct()
+    ?.ToList();
+
+
+
+
 DECLARE @instrument_number AS [dbo].[udt_instrnum];
 DECLARE @book_page AS [dbo].[udt_bookpage];
 
