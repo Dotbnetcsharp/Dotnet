@@ -1,3 +1,106 @@
+To use a Service Principal with Azure Key Vault for securely managing the Cosmos DB connection string in an ASP.NET Core application, you can follow these steps:
+
+### Steps to Secure Cosmos DB Connection String Using a Service Principal in Azure Key Vault:
+
+1. **Create a Service Principal in Azure:**
+   A Service Principal is an identity used by applications to access Azure resources. To create one, use the Azure CLI or Azure Portal.
+   
+   **Via Azure CLI:**
+   ```bash
+   az ad sp create-for-rbac --name "<your-service-principal-name>" --role Contributor --scopes /subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>
+   ```
+   This will return the `appId`, `password`, and `tenant` values which are needed for authentication.
+
+2. **Create an Azure Key Vault:**
+   If you don't already have an Azure Key Vault, create one:
+   ```bash
+   az keyvault create --name <your-keyvault-name> --resource-group <your-resource-group>
+   ```
+
+3. **Store Cosmos DB Connection String in Key Vault:**
+   Add the Cosmos DB connection string to the Key Vault:
+   ```bash
+   az keyvault secret set --vault-name <your-keyvault-name> --name "CosmosDBConnectionString" --value "<your-cosmos-db-connection-string>"
+   ```
+
+4. **Assign Permissions to the Service Principal:**
+   Assign the Service Principal access to read secrets from the Key Vault:
+   ```bash
+   az keyvault set-policy --name <your-keyvault-name> --spn <your-service-principal-client-id> --secret-permissions get
+   ```
+
+5. **Configure ASP.NET Core Application to Use the Service Principal:**
+   In your ASP.NET Core application, configure the application to authenticate using the Service Principal and retrieve the secret from Azure Key Vault.
+
+   **Update `appsettings.json`:**
+   You don't need the Cosmos DB connection string in `appsettings.json` anymore, but you need to store the Service Principal credentials (or use Managed Identity if running in Azure).
+   ```json
+   {
+     "AzureAd": {
+       "ClientId": "<your-service-principal-client-id>",
+       "ClientSecret": "<your-service-principal-client-secret>",
+       "TenantId": "<your-tenant-id>"
+     },
+     "KeyVault": {
+       "VaultName": "<your-keyvault-name>"
+     }
+   }
+   ```
+
+6. **Configure Key Vault Access in `Program.cs` or `Startup.cs`:**
+   Use the Azure SDK to authenticate the Service Principal and access the secret from Azure Key Vault. Add the required NuGet packages:
+   - `Azure.Identity`
+   - `Azure.Security.KeyVault.Secrets`
+
+   Example code in `Program.cs` for setting up Key Vault access:
+
+   ```csharp
+   using Azure.Identity;
+   using Azure.Security.KeyVault.Secrets;
+
+   var builder = WebApplication.CreateBuilder(args);
+
+   // Set up configuration to access Azure Key Vault
+   var keyVaultName = builder.Configuration["KeyVault:VaultName"];
+   var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+
+   var clientSecretCredential = new ClientSecretCredential(
+       builder.Configuration["AzureAd:TenantId"],
+       builder.Configuration["AzureAd:ClientId"],
+       builder.Configuration["AzureAd:ClientSecret"]
+   );
+
+   var secretClient = new SecretClient(vaultUri: keyVaultUri, credential: clientSecretCredential);
+   var cosmosDbConnectionString = secretClient.GetSecret("CosmosDBConnectionString").Value.Value;
+
+   // Add Cosmos DB connection string to configuration
+   builder.Configuration["ConnectionStrings:CosmosDb"] = cosmosDbConnectionString;
+
+   var app = builder.Build();
+   // ...
+   ```
+
+7. **Use the Connection String in Your Code:**
+   Now, wherever you need the Cosmos DB connection string, retrieve it from the configuration:
+   ```csharp
+   var cosmosDbConnectionString = builder.Configuration.GetConnectionString("CosmosDb");
+   ```
+
+By using a Service Principal to securely access the Cosmos DB connection string stored in Azure Key Vault, you're ensuring that sensitive credentials are not exposed in your source code or configuration files. This adds an extra layer of security to your ASP.NET Core application.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Using Azure Key Vault to store and retrieve connection strings in an ASP.NET Core API is a secure way to manage secrets like connection strings. Here's how you can do it:
 
