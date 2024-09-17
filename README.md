@@ -1,3 +1,112 @@
+Yes, you can directly use the **Service Principal** to access Azure resources, such as **Cosmos DB**, without Azure Key Vault. This can be done using **Azure Managed Identity** or **Service Principal credentials** to authenticate the application and obtain the Cosmos DB connection string.
+
+### Steps to Securely Access Cosmos DB Using Service Principal in ASP.NET Core without Key Vault:
+
+1. **Create a Service Principal in Azure:**
+   You need a Service Principal to authenticate your ASP.NET Core application with Azure.
+
+   **Via Azure CLI:**
+   ```bash
+   az ad sp create-for-rbac --name "<your-service-principal-name>" --role "Contributor" --scopes /subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>
+   ```
+   Save the following details:
+   - **ClientId** (Service Principal ID)
+   - **ClientSecret** (Service Principal Password)
+   - **TenantId**
+
+2. **Grant Service Principal Access to Cosmos DB:**
+   Assign the Service Principal access to your Cosmos DB. You can do this using the Azure CLI or Portal.
+
+   **Via Azure CLI:**
+   ```bash
+   az cosmosdb sql role definition create --account-name <cosmos-account-name> --resource-group <your-resource-group> --body @roleDefinition.json
+   ```
+   You'll need to define the necessary role that grants access to the Cosmos DB resources.
+
+3. **Configure ASP.NET Core to Use Service Principal for Cosmos DB Access:**
+
+   - Add the necessary packages to your project:
+     - `Microsoft.Azure.Cosmos`
+     - `Azure.Identity` (for using the Service Principal)
+
+4. **Configure Authentication via Service Principal in ASP.NET Core:**
+
+   **Update `appsettings.json`:**
+   You can store the Service Principal credentials in `appsettings.json`, but ideally, if your app is running on Azure (App Service, etc.), you should use **Managed Identity** to avoid storing secrets in code.
+
+   ```json
+   {
+     "AzureAd": {
+       "ClientId": "<your-service-principal-client-id>",
+       "ClientSecret": "<your-service-principal-client-secret>",
+       "TenantId": "<your-tenant-id>"
+     },
+     "CosmosDb": {
+       "AccountEndpoint": "<your-cosmosdb-endpoint>",
+       "DatabaseId": "YourDatabaseId",
+       "ContainerId": "YourContainerId"
+     }
+   }
+   ```
+
+5. **Connect to Cosmos DB Using Service Principal in `Program.cs`:**
+
+   In `Program.cs`, you will authenticate with Azure using the Service Principal credentials and pass them to the Cosmos DB client.
+
+   Example code:
+   ```csharp
+   using Azure.Identity;
+   using Microsoft.Azure.Cosmos;
+
+   var builder = WebApplication.CreateBuilder(args);
+
+   // Read Cosmos DB configuration from appsettings
+   var cosmosDbEndpoint = builder.Configuration["CosmosDb:AccountEndpoint"];
+   var databaseId = builder.Configuration["CosmosDb:DatabaseId"];
+   var containerId = builder.Configuration["CosmosDb:ContainerId"];
+
+   // Authenticate using Service Principal
+   var tenantId = builder.Configuration["AzureAd:TenantId"];
+   var clientId = builder.Configuration["AzureAd:ClientId"];
+   var clientSecret = builder.Configuration["AzureAd:ClientSecret"];
+
+   var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+
+   // Use Cosmos DB client with Managed Identity or Service Principal
+   var cosmosClientOptions = new CosmosClientOptions
+   {
+       TokenCredential = clientSecretCredential
+   };
+
+   var cosmosClient = new CosmosClient(cosmosDbEndpoint, cosmosClientOptions);
+
+   // Example: Access the database and container
+   var database = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
+   var container = await database.Database.CreateContainerIfNotExistsAsync(containerId, "/partitionKey");
+
+   // Use the app as needed
+   var app = builder.Build();
+   // ...
+   ```
+
+6. **Run the Application:**
+   After configuring the application, you can run it, and it will use the Service Principal to securely connect to Cosmos DB.
+
+### Notes:
+- **Managed Identity** (recommended): If you deploy your app to an Azure environment (e.g., App Service, VM, AKS), you should use **Managed Identity** instead of storing the Service Principal credentials in `appsettings.json`. This removes the need to manage credentials in your app.
+
+   To use **Managed Identity**, enable it in your Azure resource (App Service, VM, etc.), and replace the `ClientSecretCredential` in the code above with:
+
+   ```csharp
+   var credential = new DefaultAzureCredential();
+   var cosmosClient = new CosmosClient(cosmosDbEndpoint, credential);
+   ```
+
+By using the Service Principal or Managed Identity to directly authenticate and access Cosmos DB, you avoid storing sensitive connection strings in configuration files, ensuring a more secure setup.
+
+
+
+........
 To use a Service Principal with Azure Key Vault for securely managing the Cosmos DB connection string in an ASP.NET Core application, you can follow these steps:
 
 ### Steps to Secure Cosmos DB Connection String Using a Service Principal in Azure Key Vault:
