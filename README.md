@@ -1,3 +1,83 @@
+To secure your Cosmos DB account key using Azure Service Principal in your (link unavailable) Core application, follow these steps:
+
+*Step 1: Create an Azure Service Principal*
+
+1. Go to Azure Portal ((link unavailable)) and navigate to Azure Active Directory.
+2. Click on "App registrations" and then "New registration".
+3. Fill in the required information, select "Accounts in this organizational directory only" and click "Register".
+4. Note down the Client ID and Tenant ID.
+
+*Step 2: Create a Client Secret*
+
+1. In the App registrations page, find your newly created Service Principal.
+2. Click on "Certificates & secrets".
+3. Click "New client secret".
+4. Add a description and click "Add".
+5. Note down the Client secret value.
+
+*Step 3: Configure Azure Service Principal permissions*
+
+1. Go to your Cosmos DB account in Azure Portal.
+2. Click on "Access control (IAM)".
+3. Click "Add role assignment".
+4. Select "Cosmos DB Account Reader and Data Contributor" role.
+5. Select "User, group, or service principal" and enter your Service Principal's Client ID.
+6. Click "Save".
+
+*Step 4: Update your (link unavailable) Core application*
+
+1. Install the `Microsoft.Azure.Services.AppAuthentication` NuGet package.
+2. In your `Startup.cs` file, add the following code:
+```
+using Microsoft.Azure.Services.AppAuthentication;
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddAuthentication(AzureServiceTokenProviderAuthenticationBuilderExtensions.AzureServiceTokenProviderAuthentication);
+    services.AddCosmosDbContext(options =>
+    {
+        options.AccountEndpoint = Configuration["CosmosDB:Endpoint"];
+        options.AccountKey = GetToken();
+    });
+}
+
+private string GetToken()
+{
+    var azureServiceTokenProvider = new AzureServiceTokenProvider("(link unavailable)", Configuration["AzureAd:ClientId"], Configuration["AzureAd:ClientSecret"]);
+    return azureServiceTokenProvider.GetAccessTokenAsync().Result;
+}
+```
+*Step 5: Store Service Principal credentials securely*
+
+1. Store your Client ID, Client Secret, and Tenant ID in Azure Key Vault or another secure storage.
+2. Update your `appsettings.json` file to reference these values:
+```
+{
+  "AzureAd": {
+    "ClientId": "<Client ID>",
+    "ClientSecret": "<Client Secret>",
+    "TenantId": "<Tenant ID>"
+  },
+  "CosmosDB": {
+    "Endpoint": "<Cosmos DB Endpoint>"
+  }
+}
+```
+*Step 6: Test your application*
+
+Run your application and verify that it can connect to Cosmos DB using the Service Principal credentials.
+
+By following these steps, you've successfully secured your Cosmos DB account key using Azure Service Principal in your (link unavailable) Core application.
+
+Additional resources:
+
+- (link unavailable)
+- (link unavailable)
+- (link unavailable)
+
+
+
+
 Yes, you can directly use the **Service Principal** to access Azure resources, such as **Cosmos DB**, without Azure Key Vault. This can be done using **Azure Managed Identity** or **Service Principal credentials** to authenticate the application and obtain the Cosmos DB connection string.
 
 ### Steps to Securely Access Cosmos DB Using Service Principal in ASP.NET Core without Key Vault:
