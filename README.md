@@ -1,3 +1,30 @@
+
+
+public class NameSearchFilterQualifiersDTO
+{
+    private DateTime? _dateFrom;
+    private DateTime? _dateThru;
+
+    public DateTime? DateFrom
+    {
+        get => _dateFrom ?? DateTime.MinValue;  // Default to MinValue if null
+        set => _dateFrom = value ?? DateTime.MinValue; // Assign MinValue if null
+    }
+
+    public DateTime? DateThru
+    {
+        get => _dateThru ?? DateTime.MaxValue;  // Default to MaxValue if null
+        set => _dateThru = value ?? DateTime.MaxValue; // Assign MaxValue if null
+    }
+
+    public string SSN { get; set; } = string.Empty; // Default empty string for SSN
+}
+
+
+
+
+
+
 To secure your Cosmos DB account key using Azure Service Principal in your (link unavailable) Core application, follow these steps:
 
 *Step 1: Create an Azure Service Principal*
