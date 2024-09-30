@@ -1,3 +1,55 @@
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Images with Hyperlinks</title>
+    <style>
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
+        .image-section {
+            margin-bottom: 50px; /* Add spacing between sections */
+        }
+    </style>
+</head>
+<body>
+    <h2>Image Links</h2>
+    <!-- List of hyperlinks -->
+    <ul>
+        <li><a href="#image1">Image 1</a></li>
+        <li><a href="#image2">Image 2</a></li>
+        <li><a href="#image3">Image 3</a></li>
+    </ul>
+
+    <h2>Images</h2>
+    <!-- Image sections with ids -->
+    <div id="image1" class="image-section">
+        <h3>Image 1</h3>
+        <img src="image1.jpg" alt="Image 1">
+    </div>
+
+    <div id="image2" class="image-section">
+        <h3>Image 2</h3>
+        <img src="image2.jpg" alt="Image 2">
+    </div>
+
+    <div id="image3" class="image-section">
+        <h3>Image 3</h3>
+        <img src="image3.jpg" alt="Image 3">
+    </div>
+
+</body>
+</html>
+-->
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
