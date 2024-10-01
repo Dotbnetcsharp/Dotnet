@@ -1,4 +1,28 @@
 
+
+
+if (Session["Username"] != null)
+{
+    // Retrieve the path from the session
+    string strpath = Session["PopupReportPath"].ToString();
+
+    // Step 1: Replace "https:\" or "http:\" with "https://" or "http://"
+    if (strpath.StartsWith("https:\\") || strpath.StartsWith("http:\\"))
+    {
+        strpath = strpath.Replace("https:\\", "https://").Replace("http:\\", "http://");
+    }
+
+    // Step 2: Replace ALL backslashes '\' (single and double) with forward slashes '/'
+    strpath = strpath.Replace("\\", "/");
+
+    // Now strpath should have the correct format
+    Console.WriteLine(strpath);  // Output or use the valid URL
+
+    // If you need to set the iframe with the valid URL
+    LiteralControl literal = new LiteralControl();
+    literal.Text = $"<iframe name='PopupReportPopup' id='12' frameborder='no' scrolling='auto' height='800px' width='85%' src='{strpath}'></iframe>";
+    div1.Controls.Add(literal);
+}
 <!--
 <!DOCTYPE html>
 <html lang="en">
