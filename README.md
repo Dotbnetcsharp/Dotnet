@@ -1,3 +1,51 @@
+// Execute the command and populate DataSet
+objDataSet = objDatabase.ExecuteDataSet(objCommand);
+
+// Start building the SQL command for logging/debugging
+StringBuilder sqlWithParams = new StringBuilder();
+
+// Append the EXEC statement with the procedure name
+sqlWithParams.Append("EXEC ").Append(objCommand.CommandText).Append(" ");
+
+// Loop through each parameter and append its value
+bool isFirstParam = true;
+foreach (SqlParameter param in objCommand.Parameters)
+{
+    if (!isFirstParam)
+    {
+        sqlWithParams.Append(", "); // Add a comma between parameters
+    }
+
+    // Handle Table-Valued Parameters (TVP) differently from regular parameters
+    if (param.SqlDbType == SqlDbType.Structured && param.Value is DataTable)
+    {
+        // Just log the presence of a TVP without simulating its content
+        sqlWithParams.Append($"@{param.ParameterName} = [TVP: {param.TypeName}]");
+    }
+    else
+    {
+        // Append regular parameters with their values
+        sqlWithParams.Append($"@{param.ParameterName} = ");
+
+        // Check if the parameter value is a string to enclose it in single quotes
+        if (param.Value is string)
+        {
+            sqlWithParams.Append($"'{param.Value}'");
+        }
+        else
+        {
+            sqlWithParams.Append(param.Value.ToString());
+        }
+    }
+
+    isFirstParam = false; // Set flag to false after the first parameter
+}
+
+// Now, the SQL command has been built
+string finalSqlCommand = sqlWithParams.ToString();
+
+// You can log or display the generated SQL command
+Console.WriteLine(finalSqlCommand); // Use your preferred logging method here
 ...
 // Execute the command and populate DataSet
 objDataSet = objDatabase.ExecuteDataSet(objCommand);
