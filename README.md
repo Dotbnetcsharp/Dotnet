@@ -1,3 +1,89 @@
+...
+// Execute the command and populate DataSet
+objDataSet = objDatabase.ExecuteDataSet(objCommand);
+
+// Start building the SQL command for logging/debugging
+StringBuilder sqlWithParams = new StringBuilder();
+
+// Append the EXEC statement with the procedure name
+sqlWithParams.Append("EXEC ").Append(objCommand.CommandText).Append(" ");
+
+// Loop through each parameter and append its value
+bool isFirstParam = true;
+foreach (SqlParameter param in objCommand.Parameters)
+{
+    if (!isFirstParam)
+    {
+        sqlWithParams.Append(", "); // Add a comma between parameters
+    }
+
+    if (param.SqlDbType == SqlDbType.Structured && param.Value is DataTable) // For Table-Valued Parameters (TVP)
+    {
+        // Simulate declaring and populating the TVP
+        DataTable table = param.Value as DataTable;
+
+        // Declare the table-valued parameter as a variable (replace YourType with the actual type)
+        sqlWithParams.AppendLine($"DECLARE @{param.ParameterName} AS {param.TypeName};");
+        sqlWithParams.AppendLine($"INSERT INTO @{param.ParameterName} VALUES ");
+
+        // Insert the rows from the DataTable into the TVP
+        for (int rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
+        {
+            DataRow row = table.Rows[rowIndex];
+            sqlWithParams.Append("(");
+            for (int colIndex = 0; colIndex < table.Columns.Count; colIndex++)
+            {
+                // Add the column value, formatted based on its type
+                var columnValue = row[colIndex];
+                if (columnValue is string)
+                {
+                    sqlWithParams.Append($"'{columnValue}'");
+                }
+                else
+                {
+                    sqlWithParams.Append(columnValue.ToString());
+                }
+
+                if (colIndex < table.Columns.Count - 1)
+                {
+                    sqlWithParams.Append(", ");
+                }
+            }
+            sqlWithParams.Append(")");
+
+            if (rowIndex < table.Rows.Count - 1)
+            {
+                sqlWithParams.AppendLine(",");
+            }
+        }
+
+        // Append the TVP parameter to the EXEC command
+        sqlWithParams.Append($"EXEC {objCommand.CommandText} @{param.ParameterName} = @{param.ParameterName}");
+    }
+    else
+    {
+        // Append regular parameters to the EXEC command
+        sqlWithParams.Append($"@{param.ParameterName} = ");
+
+        // Check if the parameter value is a string to enclose it in single quotes
+        if (param.Value is string)
+        {
+            sqlWithParams.Append($"'{param.Value}'");
+        }
+        else
+        {
+            sqlWithParams.Append(param.Value.ToString());
+        }
+    }
+
+    isFirstParam = false; // Set flag to false after the first parameter
+}
+
+// Now, the SQL command has been built
+string finalSqlCommand = sqlWithParams.ToString();
+
+// You can log or display the generated SQL command
+Console.WriteLine(finalSqlCommand); // Use your preferred logging method here
 .....
 // Execute the command and populate DataSet
 objDataSet = objDatabase.ExecuteDataSet(objCommand);
