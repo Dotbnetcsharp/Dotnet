@@ -1,3 +1,54 @@
+// Execute the command and populate DataSet
+objDataSet = objDatabase.ExecuteDataSet(objCommand);
+
+// Start building the SQL command with parameters
+StringBuilder sqlWithParams = new StringBuilder();
+
+// Append the command text (Stored Procedure Name or SQL Text)
+sqlWithParams.AppendLine(objCommand.CommandText);
+
+// Loop through each parameter and append its value
+foreach (SqlParameter param in objCommand.Parameters)
+{
+    if (param.SqlDbType == SqlDbType.Structured) // Handling Table-Valued Parameters (TVP)
+    {
+        // Handle Table-Valued Parameters
+        DataTable table = param.Value as DataTable;
+        if (table != null)
+        {
+            sqlWithParams.AppendLine($"DECLARE @{param.ParameterName} AS {param.TypeName};");
+            sqlWithParams.AppendLine($"INSERT INTO @{param.ParameterName} VALUES ");
+            foreach (DataRow row in table.Rows)
+            {
+                sqlWithParams.Append("(");
+                for (int i = 0; i < table.Columns.Count; i++)
+                {
+                    sqlWithParams.Append(row[i].ToString());
+                    if (i < table.Columns.Count - 1)
+                    {
+                        sqlWithParams.Append(", ");
+                    }
+                }
+                sqlWithParams.AppendLine(");");
+            }
+        }
+    }
+    else
+    {
+        // For other types of parameters, append as SQL declare and set statements
+        sqlWithParams.AppendLine($"DECLARE @{param.ParameterName} {param.SqlDbType};");
+        sqlWithParams.AppendLine($"SET @{param.ParameterName} = '{param.Value}';");
+    }
+}
+
+// Now, the SQL command and parameters have been built
+string finalSqlCommand = sqlWithParams.ToString();
+
+// You can log the SQL command or display it
+Console.WriteLine(finalSqlCommand); // Use your logging method here if required
+
+
+
 
 
 
