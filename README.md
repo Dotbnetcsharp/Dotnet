@@ -1,3 +1,17 @@
+string originalText = dr["Comment"].ToString();
+
+// Remove HTML tags
+string cleanText = Regex.Replace(originalText, "<.*?>", string.Empty);
+
+// Remove any other unwanted characters like punctuation
+cleanText = Regex.Replace(cleanText, @"[^\w\s]", "");
+
+txtComment.Text = cleanText;
+
+
+
+
+
 *Service Principal* in simple words:
 
 A Service Principal is like a digital identity for an application or service, allowing it to interact with other Azure resources securely.
