@@ -1,3 +1,11 @@
+
+Azure Storage is like a cloud storage system where you can store and retrieve files, messages, structured data, or share files across applications. AzureWebJobsStorage is a specific connection string that links your function app to this storage, enabling it to use Azure Storage for internal tasks.
+
+
+
+
+
+
 Key Concept: Environment Variables
 
 When you deploy your app to Azure, the settings you define in the Application Settings of the Azure Portal are provided to your app as environment variables. This is a core part of how the cloud platform (like Azure) works.
