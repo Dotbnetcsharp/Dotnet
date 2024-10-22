@@ -1,3 +1,31 @@
+In the request body shown in the image, you're passing a state code ("StateCode": "AL") and a county FIPS code ("CountyFips": "1003") along with an address. Here's how the conflict might arise:
+
+Fields in the Request:
+
+StateCode: "AL" (Alabama)
+
+CountyFips: "1003" (which corresponds to a specific county, likely in Alabama)
+
+Address: "102 JAMES CIR DAPHNE AL 36526" (a full address, which is also in Alabama)
+
+
+Possible Conflicts:
+
+1. Mismatch Between StateCode and CountyFips:
+
+If the StateCode (in this case, "AL") is not actually the state associated with CountyFips (for example, if 1003 was a FIPS code for a county in a different state), a conflict will arise.
+
+The system should check if CountyFips corresponds to the county in Alabama. If CountyFips doesn’t belong to Alabama, it would trigger the conflict.
+
+
+
+2. Mismatch Between Address and StateCode/CountyFips:
+
+If the address (which in this case is in Daphne, Alabama) does not match the provided CountyFips or StateCode, it could cause a conflict.
+
+For example, if the FIPS code 1003 is for a county that is not in Alabama (even though the address provided is in Alabama), this inconsistency would be flagged as a conflict
+.............
+
 
 Azure Storage is like a cloud storage system where you can store and retrieve files, messages, structured data, or share files across applications. AzureWebJobsStorage is a specific connection string that links your function app to this storage, enabling it to use Azure Storage for internal tasks.
 
