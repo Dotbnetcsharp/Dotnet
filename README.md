@@ -1,3 +1,41 @@
+
+bool hasValidResponse = false;
+
+foreach (APNMultiPropertySearchRequest propertydetails in apnSearchRequests.Property)
+{
+    APNTypeAheadRequest aPNTypeAheadRequest = new APNTypeAheadRequest();
+    aPNTypeAheadRequest.APN = propertydetails.APN;
+    aPNTypeAheadRequest.CountyFips = apnSearchRequests.CountyFips;
+    aPNTypeAheadRequest.StateCode = apnSearchRequests.StateCode;
+
+    var apnSearchResponse = await apnSearchService.APNTypeAheadSearch(aPNTypeAheadRequest);
+
+    if (apnSearchResponse != null && apnSearchResponse.APNs.Count() > 0)
+    {
+        hasValidResponse = true; // Set flag to true if a valid response is found
+        break; // Exit the loop early if a valid response is found
+    }
+}
+
+// After the loop, check if no valid response was found
+if (!hasValidResponse)
+{
+    throw new BadRequestException("EC-04", "No valid responses found for any property details.");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 In the request body shown in the image, you're passing a state code ("StateCode": "AL") and a county FIPS code ("CountyFips": "1003") along with an address. Here's how the conflict might arise:
 
 Fields in the Request:
