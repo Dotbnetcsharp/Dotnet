@@ -1,4 +1,17 @@
 
+
+
+
+$.blockUI({
+    message: $('#StarterExchangeCreditPopUp'),
+    css: {
+        width: '678px',
+        height: '550px',
+        left: '200px',
+        overflowY: 'auto',  // Corrected overflow-y
+        overflowX: 'hidden'  // Corrected overflow-x
+    }
+});
 bool hasValidResponse = false;
 
 foreach (APNMultiPropertySearchRequest propertydetails in apnSearchRequests.Property)
