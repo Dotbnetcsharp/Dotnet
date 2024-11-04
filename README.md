@@ -1,4 +1,7 @@
-
+$.blockUI({
+    message: $('#StarterExchangeCreditPopUp'),
+    css: { width: '678px', height: '550px', left: '200px', top: '20%', overflowY: 'auto', overflowX: 'hidden', maxHeight: '550px' }
+});
 
 
 
