@@ -1,20 +1,5 @@
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch API Server",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/server/app.js", // or use "${workspaceFolder}/server/api-server.js"
-      "cwd": "${workspaceFolder}",
-      "outFiles": ["${workspaceFolder}/compiled/**/*.js"], // Update this if needed based on where Babel outputs compiled files
-      "sourceMaps": true, // Useful if you're using TypeScript or Babel
-      "runtimeArgs": ["--nolazy", "--inspect-brk=9229"],
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "console": "integratedTerminal"
-    }
-  ]
-}
+Developer Note: This is not a bug but expected behavior in the addressTypeAhead API. The entered address has multiple associated records with different APNs (Assessor's Parcel Numbers) and property IDs, resulting in multiple suggestions.
+
+Developer Note: The issue arises because the address entered has multiple associated records with different APNs (Assessor's Parcel Numbers) and property IDs. As a result, the API returns all matching suggestions instead of an exact match. Consider implementing logic to prioritize or filter for exact matches when multiple records share similar address details.
+
+
