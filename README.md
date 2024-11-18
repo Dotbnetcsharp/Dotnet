@@ -1,3 +1,78 @@
+let progress = 0;
+
+try {
+  // Step 1: Pre-process JSON data for custom page breaks
+  const processResultsForPageBreak = (data) => {
+    const processedContent = [];
+    let remainingPageHeight = 800; // Example: Define your page height
+    const pageMargin = 50; // Define bottom margin
+
+    data.forEach((result) => {
+      const nodeHeight = estimateNodeHeight(result);
+
+      if (remainingPageHeight - nodeHeight < pageMargin) {
+        processedContent.push({ text: '', pageBreak: 'after' }); // Add page break
+        remainingPageHeight = 800; // Reset for new page
+      }
+
+      processedContent.push(result);
+      remainingPageHeight -= nodeHeight;
+    });
+
+    return processedContent;
+  };
+
+  const estimateNodeHeight = (node) => {
+    return node.text.length * 5; // Example: Approximation of node height
+  };
+
+  // Replace with your actual JSON input
+  const jsonData = [
+    { text: 'Parameter 1: Some data...' },
+    { text: 'Parameter 2: More data...' },
+    // Add more items as per your JSON structure
+  ];
+
+  // Pre-process content
+  const processedContent = processResultsForPageBreak(jsonData);
+
+  // Step 2: Define the PDF document
+  const document = {
+    pageMargins: [40, 60, 40, 60],
+    content: processedContent,
+    styles: {
+      header: { fontSize: 16, bold: true },
+      normal: { fontSize: 12 },
+    },
+  };
+
+  // Step 3: Generate the PDF with progress callback
+  var pdfDoc = printer.createPdfKitDocument(document, {
+    bufferPages: true, // Buffer pages to improve performance
+    progressCallback: (d) => {
+      if (d > progress) {
+        progress = d + 1; // Update progress
+        console.log(`Progress: ${progress}%`);
+      }
+    },
+  });
+
+  // Step 4: Write PDF to file
+  const fullFile = './path/to/output.pdf'; // Update this with your file path
+  if (!fs.existsSync(fullFile)) {
+    fs.mkdirSync(fullFile, { recursive: true }); // Ensure the directory exists
+  }
+
+  pdfDoc.pipe(fs.createWriteStream(fullFile)); // Write to the output file
+  pdfDoc.end(); // Finalize the PDF
+} catch (ex) {
+  console.error('Error generating PDF:', ex);
+}
+
+
+
+
+
 
 document.content.push({
     table: {
