@@ -1,3 +1,58 @@
+function applyDynamicPageBreak(contentArray) {
+  const modifiedContent = [];
+  let currentPageHeight = 0;
+  const maxPageHeight = 750; // Adjust this based on your PDF's page size and margins.
+
+  contentArray.forEach((node) => {
+    // Measure the height of the current node. Assume each line is ~20 units high.
+    const nodeHeight = estimateNodeHeight(node);
+
+    // Check if adding this node exceeds the page height
+    if (currentPageHeight + nodeHeight > maxPageHeight) {
+      // Add a page break before the node
+      modifiedContent.push({ text: '', pageBreak: 'after' });
+      currentPageHeight = 0; // Reset height for the new page
+    }
+
+    // Add the node to the modified content
+    modifiedContent.push(node);
+
+    // Update the current page height
+    currentPageHeight += nodeHeight;
+  });
+
+  return modifiedContent;
+}
+
+// Example function to estimate node height (customize based on your data)
+function estimateNodeHeight(node) {
+  if (node.text) {
+    const lines = node.text.split('\n').length;
+    return lines * 20; // Assume 20 units height per line
+  }
+  return 30; // Default height for nodes without text
+}
+const document = {
+  pageMargins: [40, 165, 60, 50],
+  content: applyDynamicPageBreak(apiResponseContent), // Process content dynamically
+  styles: {
+    header: { fontSize: 19, bold: true, font: 'Calibri' },
+    normal: { fontSize: 12, font: 'Calibri' }
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 var fonts = {
   Calibri: {
     normal: './fonts/Calibri/calibri.ttf',
@@ -18,6 +73,10 @@ const fullFile = 'C:/NTP';
 let pdfPath = `${fullFile}/ntpreports${uuidV4()}.pdf`;
 
 let progress = 0;
+
+
+
+
 
 try {
   // Step 1: Add custom page break logic
