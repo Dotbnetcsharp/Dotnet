@@ -1,3 +1,170 @@
+var fonts = {
+  Calibri: {
+    normal: './fonts/Calibri/calibri.ttf',
+    bold: './fonts/Calibri/calibrib.ttf',
+    italics: './fonts/Calibri/calibril.ttf',
+  },
+  CenturyGothic: {
+    normal: './fonts/CenturyGothic/CenturyGothic.ttf',
+    bold: './fonts/CenturyGothic/CenturyGothicB.ttf',
+  },
+};
+
+var printer = new PdfPrinter(fonts);
+log.info('Starting to create PDF from JSON');
+
+// To store in local file
+const fullFile = 'C:/NTP';
+let pdfPath = `${fullFile}/ntpreports${uuidV4()}.pdf`;
+
+let progress = 0;
+
+try {
+  // Step 1: Add custom page break logic
+  const processResultsForPageBreak = (data) => {
+    const processedContent = [];
+    let remainingPageHeight = 800; // Example page height
+    const pageMargin = 50; // Bottom margin for each page
+
+    data.forEach((result) => {
+      const nodeHeight = estimateNodeHeight(result);
+
+      if (remainingPageHeight - nodeHeight < pageMargin) {
+        processedContent.push({ text: '', pageBreak: 'after' }); // Add page break
+        remainingPageHeight = 800; // Reset for new page
+      }
+
+      processedContent.push(result);
+      remainingPageHeight -= nodeHeight;
+    });
+
+    return processedContent;
+  };
+
+  const estimateNodeHeight = (node) => {
+    // Example: Estimate height of a node
+    return node.text.length * 5; // Adjust multiplier based on your content
+  };
+
+  // Example JSON data
+  const jsonData = [
+    { text: 'Parameter 1: Some data...' },
+    { text: 'Parameter 2: More data...' },
+    // Add more items here as per your input
+  ];
+
+  // Preprocess the content to handle page breaks
+  const processedContent = processResultsForPageBreak(jsonData);
+
+  // Step 2: Define the PDF document with the processed content
+  const document = {
+    pageMargins: [40, 60, 40, 60],
+    content: processedContent,
+    styles: {
+      header: { fontSize: 16, bold: true },
+      normal: { fontSize: 12 },
+    },
+  };
+
+  // Step 3: Generate the PDF with a progress callback
+  var pdfDoc = printer.createPdfKitDocument(document, {
+    bufferPages: true,
+    progressCallback: (d) => {
+      if (d > progress) {
+        progress = d + 1;
+        console.log(`Progress: ${progress}%`);
+      }
+    },
+  });
+
+  // Step 4: Ensure the directory exists and save the file
+  if (!fs.existsSync(fullFile)) {
+    fs.mkdirSync(fullFile, { recursive: true });
+  }
+
+  createTheFile(pdfDoc, pdfPath); // Use your existing function to handle file writing
+} catch (ex) {
+  console.error('Error generating PDF:', ex);
+}
+
+return { pdfPath, pdfDoc };
+
+// Function to upload the PDF to Azure Blob Storage
+const writeBlob = async (filePath, container, fileName, extension) => {
+  return new Promise((resolve) => {
+    var readStream = fs.createReadStream(filePath);
+    fileName = filePath.split('\\').pop();
+    let jMessage = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+
+    const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
+    const blobContainer = blobService.getContainerClient(container);
+    const blobClient = blobContainer.getBlockBlobClient(jMessage + extension);
+
+    var stats = fs.statSync(filePath);
+    var fileSizeInBytes = stats['size'];
+
+    readStream.on('open', async function () {
+      log.info('Read stream opened');
+      try {
+        await blobClient.uploadStream(readStream, fileSizeInBytes);
+        log.info('Created report PDF in blob', fileName);
+        resolve(blobClient.url);
+      } catch (error) {
+        console.error('Error uploading to blob:', error);
+        resolve();
+      }
+    });
+  });
+};
+
+// Function to handle writing the PDF file
+function createTheFile(pdfDoc, fullFilePath) {
+  var log = log4js.getLogger();
+  log.level = 'debug';
+
+  return new Promise((resolve) => {
+    try {
+      fsExtra.ensureFileSync(fullFilePath);
+
+      let stream = fs.createWriteStream(fullFilePath);
+      stream.on('open', function () {
+        pdfDoc.pipe(stream);
+        pdfDoc.end();
+      });
+
+      stream.on('error', (err) => {
+        console.error('Error writing stream:', err);
+      });
+
+      stream.on('finish', () => {
+        log.info('PDF generation finished.');
+        resolve();
+      });
+
+      stream.on('close', () => {
+        log.info('Stream closed.');
+        resolve();
+      });
+    } catch (e) {
+      log.error('Error:', e);
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 let progress = 0;
 
 try {
