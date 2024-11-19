@@ -1,3 +1,80 @@
+
+using System;
+using System.Text;
+using System.Security.Cryptography;
+
+namespace YourNamespace
+{
+    public partial class EncryptDecrypt : System.Web.UI.Page
+    {
+        protected void SubmitButton_Click(object sender, EventArgs e)
+        {
+            string input = inputText.Text;
+            if (!string.IsNullOrEmpty(input))
+            {
+                // Encrypt the input text
+                string encrypted = Encrypt(input);
+                encryptedText.Text = encrypted;
+
+                // Decrypt the encrypted text
+                string decrypted = Decrypt(encrypted);
+                decryptedText.Text = decrypted;
+            }
+        }
+
+        private string Encrypt(string plainText)
+        {
+            byte[] key = Encoding.UTF8.GetBytes("yourkey123456789"); // Replace with a proper key
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.GenerateIV();
+                byte[] iv = aes.IV;
+                byte[] encrypted;
+                using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                {
+                    byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+                    encrypted = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+                }
+
+                byte[] combined = new byte[iv.Length + encrypted.Length];
+                Array.Copy(iv, 0, combined, 0, iv.Length);
+                Array.Copy(encrypted, 0, combined, iv.Length, encrypted.Length);
+
+                return Convert.ToBase64String(combined);
+            }
+        }
+
+        private string Decrypt(string encryptedText)
+        {
+            byte[] key = Encoding.UTF8.GetBytes("yourkey123456789"); // Use the same key as for encryption
+            byte[] combined = Convert.FromBase64String(encryptedText);
+            byte[] iv = new byte[16];
+            Array.Copy(combined, iv, iv.Length);
+            byte[] encrypted = new byte[combined.Length - iv.Length];
+            Array.Copy(combined, iv.Length, encrypted, 0, encrypted.Length);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                {
+                    byte[] decrypted = decryptor.TransformFinalBlock(encrypted, 0, encrypted.Length);
+                    return Encoding.UTF8.GetString(decrypted);
+                }
+            }
+        }
+    }
+}
+
+
+.......
+
+
+
+
+
 function applyDynamicPageBreak(contentArray) {
   const modifiedContent = [];
   let currentPageHeight = 0;
