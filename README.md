@@ -52,3 +52,27 @@ if (parsedResponse.access_token) {
 } else {
     console.error('Access token not found in response');
 }
+
+
+try {
+    // Check if the response body exists
+    if (this.responseBody) {
+        console.log('Raw Response Body:', this.responseBody);
+
+        // Parse the response body to get the access_token
+        const parsedResponse = JSON.parse(this.responseBody);
+        
+        // Check if the access_token exists in the response
+        if (parsedResponse.access_token) {
+            // Store the token in the state variable
+            state.setVariable('authToken', parsedResponse.access_token);
+            console.log('Auth Token:', state.getVariable('authToken'));  // Log the token for verification
+        } else {
+            console.error('Access token not found in response');
+        }
+    } else {
+        console.error('Response body is empty or undefined');
+    }
+} catch (error) {
+    console.error('Error parsing response:', error.message);
+}
