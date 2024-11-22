@@ -16,3 +16,11 @@ if (parsedResponse.access_token) {
 } else {
     console.error('Access token not found in response');
 }
+
+
+const parsedResponse = JSON.parse(this.responseBody); // Use 'this.responseBody' to access the response body
+if (parsedResponse.access_token) {
+    state.setVariable('authToken', parsedResponse.access_token); // Save the access_token
+} else {
+    console.error('Access token not found in response');
+}
