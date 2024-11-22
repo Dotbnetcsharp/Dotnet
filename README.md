@@ -21,4 +21,9 @@ export const afterRequest = ({ response }, state) => {
   state.setVariable('authToken', token); // Save token to a state variable
 };
 
-
+const responseJson = response.json();
+if (responseJson.token) {
+    state.setVariable('authToken', responseJson.token); // Store the token in a state variable
+} else {
+    console.error('Token not found in response');
+}
