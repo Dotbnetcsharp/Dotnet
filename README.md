@@ -24,3 +24,15 @@ if (parsedResponse.access_token) {
 } else {
     console.error('Access token not found in response');
 }
+
+
+try {
+    const parsedResponse = JSON.parse(this.responseBody); // Parse the response body safely
+    if (parsedResponse && parsedResponse.access_token) {
+        state.setVariable('authToken', parsedResponse.access_token); // Save the access_token to the state variable
+    } else {
+        console.error('Access token not found in response');
+    }
+} catch (error) {
+    console.error('Error parsing response body:', error);
+}
