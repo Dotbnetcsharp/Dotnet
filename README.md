@@ -36,3 +36,7 @@ try {
 } catch (error) {
     console.error('Error parsing response body:', error);
 }
+
+Authorization
+
+Value: Bearer {{authToken}}
