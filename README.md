@@ -95,3 +95,7 @@ try {
     console.error('Error parsing response:', error.message);
     console.log('Full Response:', this);  // Log the full response object for further inspection
 }
+
+
+console.log('Raw Response:', this.response);  // Log the full response
+console.log('Response Body:', this.responseBody);  // Try this, but this might be different based on tool
