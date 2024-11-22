@@ -1,6 +1,6 @@
-
-if ($response.json.token) {
-    state.setVariable('authToken', $response.json.token); // Save the token to a state variable
+const responseBody = JSON.parse(responseBody); // Parse the raw response body
+if (responseBody.token) {
+    state.setVariable('authToken', responseBody.token); // Save the token in a state variable
 } else {
     console.error('Token not found in response');
 }
