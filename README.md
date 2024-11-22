@@ -1,6 +1,10 @@
-const responseBody = JSON.parse(responseBody); // Parse the raw response body
-if (responseBody.token) {
-    state.setVariable('authToken', responseBody.token); // Save the token in a state variable
+if (typeof responseBody !== "undefined") {
+    const parsedResponse = JSON.parse(responseBody); // Parse the response body as JSON
+    if (parsedResponse.token) {
+        state.setVariable('authToken', parsedResponse.token); // Save the token
+    } else {
+        console.error('Token not found in response');
+    }
 } else {
-    console.error('Token not found in response');
+    console.error('responseBody is undefined. Check Bruno’s documentation or response access settings.');
 }
