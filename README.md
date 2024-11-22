@@ -14,3 +14,11 @@ vars.set("auth_token", responseJson.access_token); // Save the access token to a
 ...
 const responseJson = JSON.parse(Response.body); // Parse the response body
 vars.set("auth_token", responseJson.access_token); // Save the access token to a variable
+
+
+export const afterRequest = ({ response }, state) => {
+  const token = response.json().token; // Adjust 'token' based on your response structure
+  state.setVariable('authToken', token); // Save token to a state variable
+};
+
+
