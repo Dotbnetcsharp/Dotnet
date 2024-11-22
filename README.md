@@ -76,3 +76,22 @@ try {
 } catch (error) {
     console.error('Error parsing response:', error.message);
 }
+
+
+
+try {
+    if (this.responseBody) {
+        const parsedResponse = JSON.parse(this.responseBody);
+        if (parsedResponse.access_token) {
+            state.setVariable('authToken', parsedResponse.access_token);
+            console.log('Auth Token:', state.getVariable('authToken'));
+        } else {
+            console.error('Access token not found in response');
+        }
+    } else {
+        console.error('Response body is empty or undefined');
+    }
+} catch (error) {
+    console.error('Error parsing response:', error.message);
+    console.log('Full Response:', this);  // Log the full response object for further inspection
+}
