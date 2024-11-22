@@ -40,3 +40,15 @@ try {
 Authorization
 
 Value: Bearer {{authToken}}
+
+
+const parsedResponse = JSON.parse(this.responseBody); // Parse the response body
+if (parsedResponse.access_token) {
+    // Store the token in the 'authToken' state variable
+    state.setVariable('authToken', parsedResponse.access_token);
+    
+    // Log the token value to confirm it is set correctly
+    console.log('Auth Token:', state.getVariable('authToken'));  // This will show the token value in the console
+} else {
+    console.error('Access token not found in response');
+}
