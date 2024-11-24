@@ -1,3 +1,10 @@
+
+-- Add DocumentNumber condition
+IF @DocNumber IS NOT NULL AND LEN(@DocNumber) > 0
+    SET @czst += '[DocumentNumber] = ''' + REPLACE(@DocNumber, '''', '''''') + ''' AND ';
+
+
+
 if (typeof responseBody !== "undefined") {
     const parsedResponse = JSON.parse(responseBody); // Parse the response body as JSON
     if (parsedResponse.token) {
