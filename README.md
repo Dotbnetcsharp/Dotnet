@@ -1,3 +1,9 @@
+
+<xsl:template match="message">
+    <message>
+        <xsl:value-of select="translate(., '&amp;nbsp;', ' ')" />
+    </message>
+</xsl:template>
 ---
 
 Currently, our API returns up to 6,000 results (APN, Address, and Owner). We need to increase this limit to 10,000.
