@@ -1,3 +1,22 @@
+
+public class PropertyNumberFormatter {
+    public static void main(String[] args) {
+        String propertyNumber = "1085221300001100";
+        
+        // Format the string as per the required output
+        String formatted = propertyNumber.substring(0, 3) + " " + 
+                           propertyNumber.substring(3, 4) + " " + 
+                           propertyNumber.substring(4, 6) + " " + 
+                           propertyNumber.substring(6, 8) + " " + 
+                           propertyNumber.substring(8, 9) + " " + 
+                           propertyNumber.substring(9, 15) + " " + 
+                           propertyNumber.substring(15);
+        
+        // Print the formatted output
+        System.out.println(formatted);
+    }
+}
+
 Access Modifiers in Java:
 
 1. public:
