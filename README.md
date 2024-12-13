@@ -1,3 +1,64 @@
+Access Modifiers in Java:
+
+1. public:
+
+Access: The member (class, method, or variable) can be accessed from anywhere in the program.
+
+Example:
+
+public class MyClass { }
+
+
+
+2. private:
+
+Access: The member can only be accessed within the same class.
+
+Example:
+
+private int age;
+
+
+
+3. protected:
+
+Access: The member can be accessed within the same package or by subclasses (even if they are in different packages).
+
+Example:
+
+protected void display() { }
+
+
+
+4. Default (No modifier):
+
+Access: The member is accessible only within the same package.
+
+Example:
+
+class MyClass { }
+
+
+
+
+Summary:
+
+public: Accessible everywhere.
+
+private: Accessible only within the same class.
+
+protected: Accessible within the same package or by subclasses.
+
+Default: Accessible within the same package.
+
+
+
+
+
+
+
+
+
 
 Differences Between System.out.println and System.err.println:
 
