@@ -1,3 +1,42 @@
+Class Variable:
+
+Declared with static inside a class but outside methods.
+
+Shared by all objects of the class.
+
+
+Example:
+
+class Example {
+    static int count = 0; // Class variable
+
+    public static void main(String[] args) {
+        System.out.println(count); // Output: 0
+    }
+}
+
+
+---
+
+Local Variable:
+
+Declared inside a method or block.
+
+Exists only during method execution.
+
+
+Example:
+
+class Example {
+    public static void main(String[] args) {
+        int num = 5; // Local variable
+        System.out.println(num); // Output: 5
+    }
+}
+
+
+
+
 In Java, the main method must be static so the JVM (Java Virtual Machine) can call it directly without creating an object of the class. If main is not static, the program will not run, as the JVM wouldn't know how to execute it
 Because the JVM always calls the main(String[] args) method as the entry point. The second main(String arr) method will not be called unless explicitly invoked.
 
