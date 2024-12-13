@@ -1,3 +1,36 @@
+
+
+Class Variable:
+
+Declared with static inside a class but outside methods.
+
+Shared by all objects of the class.
+
+Example:
+
+class Example { static int count = 0; // Class variable
+
+public static void main(String[] args) {
+    System.out.println(count); // Output: 0
+}
+}
+
+Local Variable:
+
+Declared inside a method or block.
+
+Exists only during method execution.
+
+Example:
+
+class Example { public static void main(String[] args) { int num = 5; // Local variable System.out.println(num); // Output: 5 } }
+
+
+
+
+
+
+
 Class Variable:
 
 Declared with static inside a class but outside methods.
@@ -6,6 +39,8 @@ Shared by all objects of the class.
 
 
 Example:
+
+
 
 class Example {
     static int count = 0; // Class variable
