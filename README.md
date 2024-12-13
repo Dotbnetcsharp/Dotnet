@@ -1,5 +1,11 @@
 https://github.com/Dotbnetcsharp/Dotnet/setting
 
+The error message "Excessive results found" is displayed because the indexCount parameter in the request is set to 5, which is the maximum limit currently supported. Previously, the system used a default value of 6000 for fetching data, but we now limit the results dynamically using the indexCount property.
+
+For example, when querying the address "3212 Silver Bush", the stored procedure returns 34 properties, which exceeds the current indexCount limit of 5. As a result, the system restricts the output and shows this message.
+
+To resolve this issue and view more data, the indexCount value in the request can be increased. This behavior is intentional to prevent performance issues, and the system is designed to support data retrieval only up to the specified maximum limit
+
 
 The error message "Excessive results found" is displayed because the indexCount in the request is set to 5, which is the maximum limit we support. If the data exceeds this limit, the message is shown. To view the data, increase the indexCount value in the request.
 The error message "Excessive results found" is displayed because the indexCount parameter in the request is set to 5, which is the maximum limit currently supported. Previously, the system used a default value of 6000 for fetching data, but we now limit the results dynamically using the indexCount property.
