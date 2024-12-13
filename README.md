@@ -1,4 +1,38 @@
 
+Differences Between System.out.println and System.err.println:
+
+1. System.out.println:
+
+Used for: Regular output (e.g., results or information).
+
+Example:
+
+System.out.println("This is normal output.");
+
+
+
+2. System.err.println:
+
+Used for: Error messages or warnings.
+
+Example:
+
+System.err.println("This is an error message.");
+
+
+
+
+Key Difference:
+
+System.out.println is for regular info, and System.err.println is for error messages. Both usually show in the console, but errors can be redirected separately.
+
+
+
+
+
+
+
+
 
 Class Variable:
 
