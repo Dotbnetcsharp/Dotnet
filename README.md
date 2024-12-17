@@ -1,12 +1,8 @@
-Developer Note:
+int totalRowCount = 0;
 
-The IndexCount property allows the API to return up to 10,000 results.
+foreach (DataTable table in dsTemp.Tables)
+{
+    totalRowCount += table.Rows.Count;  // Add the row count of each table
+}
 
-If IndexCount is set to more than 10,000:
-
-If the data has more than 10,000 records, the API will throw an exception.
-
-If the data has 10,000 or fewer records, the API will return results successfully.
-
-
-
+Console.WriteLine("Total Row Count: " + totalRowCount);
