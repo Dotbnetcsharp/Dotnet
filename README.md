@@ -1,57 +1,24 @@
+// Original URL
+string azureAddressApiGetURL = "https://dbsmp1dtlmsi1.search.windows.net/indexes/idxpropertyownerdev1/docs?api-version=2020-06-30&$top=50&searchMode=all&search=(FullTextSearchAddress: (10 PINE TREE RD #*) OR FullTextSearchAddress keyword: (/10 PINE TREE RD #.*/)) AND County Fips: \"37125\"&querytype=full&$count=true";
 
-// Create the SQL command string
-string sqlCommandText = "EXEC YourStoredProcedure ";
-
-// Append each parameter to the SQL string
-foreach (SqlParameter param in da.SelectCommand.Parameters)
+// Step 1: Identify and handle FullTextSearchAddress portion
+int searchStartIndex = azureAddressApiGetURL.IndexOf("FullTextSearchAddress:");
+if (searchStartIndex != -1)
 {
-    // Concatenate parameter names and values to the SQL string
-    sqlCommandText += param.ParameterName + " = '" + param.Value.ToString() + "', ";
+    // Extract the FullTextSearchAddress part dynamically
+    int searchEndIndex = azureAddressApiGetURL.IndexOf(")", searchStartIndex);
+    string fullTextSearchPart = azureAddressApiGetURL.Substring(searchStartIndex, searchEndIndex - searchStartIndex + 1);
+
+    // Replace # with "%23" in this part
+    string modifiedSearchPart = fullTextSearchPart.Replace("#", "\"%23\"");
+
+    // Replace the original part in the URL with the modified part
+    azureAddressApiGetURL = azureAddressApiGetURL.Replace(fullTextSearchPart, modifiedSearchPart);
 }
 
-// Remove the trailing comma and space
-sqlCommandText = sqlCommandText.TrimEnd(',', ' ');
+// Step 2: Replace all remaining # symbols with %23 globally, except for the already processed portion
+// This works because the FullTextSearchAddress part is already encoded correctly
+azureAddressApiGetURL = azureAddressApiGetURL.Replace("#", "%23");
 
-// Assuming you have a SqlConnection object (connection)
-using (SqlCommand sqlCommand = new SqlCommand(sqlCommandText, connection))
-{
-    try
-    {
-        connection.Open();
-        int rowsAffected = sqlCommand.ExecuteNonQuery(); // Execute the command
-        Console.WriteLine("Rows affected: " + rowsAffected);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Error executing stored procedure: " + ex.Message);
-    }
-}
-
-
-
-// Create the SQL command string
-string sqlCommandText = "EXEC YourStoredProcedure ";
-
-// Append each parameter to the SQL string
-foreach (SqlParameter param in da.SelectCommand.Parameters)
-{
-    sqlCommandText += $"{param.ParameterName} = '{param.Value}', ";
-}
-
-// Remove the trailing comma and space
-sqlCommandText = sqlCommandText.TrimEnd(',', ' ');
-
-// Assuming you have a SqlConnection object (connection)
-using (SqlCommand sqlCommand = new SqlCommand(sqlCommandText, connection))
-{
-    try
-    {
-        connection.Open();
-        int rowsAffected = sqlCommand.ExecuteNonQuery(); // Execute the command
-        Console.WriteLine($"Rows affected: {rowsAffected}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error executing stored procedure: {ex.Message}");
-    }
-}
+// Output the final URL
+Console.WriteLine(azureAddressApiGetURL);
