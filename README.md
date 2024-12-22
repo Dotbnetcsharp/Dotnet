@@ -1,4 +1,10 @@
-
+services.AddSwaggerGen(c =>
+{
+    c.ConfigureSwaggerGen(options =>
+    {
+        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+    });
+});
 // Original URL
 string azureAddressApiGetURL = "https://dbsmp1dtlmsi1.search.windows.net/indexes/idxpropertyownerdev1/docs?api-version=2020-06-30&$top=50&searchMode=all&search=(FullTextSearchAddress: (10 PINE TREE RD #*) OR FullTextSearchAddress keyword: (/10 PINE TREE RD #.*/)) AND County Fips: \"37125\"&querytype=full&$count=true";
 
