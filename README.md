@@ -1,3 +1,18 @@
+
+USE NEO_STG_CODE;
+
+EXEC dbo.usp_GetDocumentByInstrumentOrBookPage_v2_batch
+    @FIPS = '1003',
+    @instrument_number = (SELECT * FROM (VALUES 
+        ('2012426')
+    ) AS T(instrument_number)),
+    @book_page = (SELECT * FROM (VALUES 
+        ('Book1', 'Page1')
+    ) AS T(book, page));
+
+
+
+
 stopwatch.Start();
 var pattern = new Regex("[-, .\\t\\r\\n]{2,3}");
 using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
