@@ -1,4 +1,9 @@
+USE NEO_STG_CODE;
 
+EXEC dbo.usp_GetDocumentByInstrumentOrBookPage_v2_batch
+    @FIPS = '1003',
+    @instrument_number = '2012426',  -- Pass individual value
+    @book_page = 'Book1, Page1';      -- Pass as a single string (or split as needed)
 USE NEO_STG_CODE;
 
 EXEC dbo.usp_GetDocumentByInstrumentOrBookPage_v2_batch
