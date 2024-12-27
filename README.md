@@ -1,3 +1,38 @@
+
+
+package com.ExceptionHandling;
+
+import java.util.*;
+
+public class Example {
+
+    public static void main(String[] args) {
+
+        ArrayList<String> names = new ArrayList<>();
+
+        names.add("a1");
+        names.add("a2");
+        names.add("a3");
+        names.add("a4");
+        names.add("pavani");
+
+        try {
+            for (String str : names) {
+                if (str.length() < 5) {
+                    System.out.println(str);
+                } else {
+                    throw new Exception("String length greater than 5: " + str);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+        }
+    }
+}
+
+
+
+
 USE NEO_STG_CODE;
 
 EXEC dbo.usp_GetDocumentByInstrumentOrBookPage_v2_batch
