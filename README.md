@@ -1,75 +1,42 @@
-private void ApplyHtmlToExcel(ExcelRange cell, string htmlContent)
+protected void btndownload_Click(object sender, EventArgs e)
 {
-    // Decode the HTML
-    string decodedHtml = System.Web.HttpUtility.HtmlDecode(htmlContent);
-
-    // Check if the content contains a table
-    if (decodedHtml.Contains("<table"))
+    try
     {
-        // Use HtmlAgilityPack to parse the table
-        HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
-        doc.LoadHtml(decodedHtml);
-
-        // Find the table node
-        var tableNode = doc.DocumentNode.SelectSingleNode("//table");
-        if (tableNode != null)
+        using (ExcelPackage excelPackage = new ExcelPackage())
         {
-            // Parse table content and render it in Excel
-            var rows = tableNode.SelectNodes(".//tr");
-            if (rows != null)
+            // Create a worksheet
+            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.Add("Report");
+
+            // Bind data to GridView (modify this part as per your logic)
+            bindData();
+
+            grdProjQueue.AllowPaging = false;
+            grdProjQueue.AllowSorting = false;
+            grdProjQueue.DataBind();
+
+            // Export GridView data to Excel
+            int row = 1;
+            for (int i = 0; i < grdProjQueue.Rows.Count; i++)
             {
-                int currentRow = cell.Start.Row; // Start from the cell's row
-                int currentCol = cell.Start.Column;
-
-                foreach (var row in rows)
+                for (int j = 0; j < grdProjQueue.Columns.Count; j++)
                 {
-                    var cols = row.SelectNodes(".//td|.//th");
-                    if (cols != null)
-                    {
-                        int colIndex = currentCol;
-                        foreach (var col in cols)
-                        {
-                            // Get the cell value
-                            string cellValue = col.InnerText.Trim();
-
-                            // Write the value to the Excel cell
-                            cell.Worksheet.Cells[currentRow, colIndex].Value = cellValue;
-
-                            // Apply basic styling (e.g., bold for <th>)
-                            if (col.Name == "th")
-                            {
-                                cell.Worksheet.Cells[currentRow, colIndex].Style.Font.Bold = true;
-                                cell.Worksheet.Cells[currentRow, colIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                                cell.Worksheet.Cells[currentRow, colIndex].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                                cell.Worksheet.Cells[currentRow, colIndex].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                            }
-
-                            // Move to the next column
-                            colIndex++;
-                        }
-                    }
-
-                    // Move to the next row
-                    currentRow++;
+                    string htmlContent = grdProjQueue.Rows[i].Cells[j].Text;
+                    ApplyHtmlToExcel(worksheet.Cells[row, j + 1], htmlContent);
                 }
+                row++;
             }
+
+            // Set response headers and download Excel file
+            Response.Clear();
+            Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            Response.AddHeader("content-disposition", $"attachment; filename=Report_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+            Response.BinaryWrite(excelPackage.GetAsByteArray());
+            Response.End();
         }
     }
-    else
+    catch (Exception ex)
     {
-        // If not a table, apply basic HTML parsing
-        decodedHtml = decodedHtml.Replace("<br>", Environment.NewLine);
-
-        if (decodedHtml.Contains("<b>"))
-        {
-            decodedHtml = decodedHtml.Replace("<b>", "").Replace("</b>", "");
-            cell.Style.Font.Bold = true;
-        }
-
-        // Set the final value
-        cell.Value = decodedHtml;
-
-        // Enable text wrapping for multiline content
-        cell.Style.WrapText = true;
+        // Log the exception
+        Logger.WriteLog(ex.Message + " " + DateTime.Now + " " + ex.StackTrace);
     }
 }
