@@ -1,4 +1,4 @@
-protected void btndownload_Click(object sender, EventArgs e)
+qprotected void btndownload_Click(object sender, EventArgs e)
 {
     try
     {
@@ -39,11 +39,13 @@ protected void btndownload_Click(object sender, EventArgs e)
                     }
                 }
 
-                // Render the GridView
+                // Apply the CSS styles for wrapping text and column widths
+                Response.Write("<style> .text { mso-number-format:\"\\@\"; mso-wrap-text: true; width: 150px; } </style>");
+
+                // Render the GridView as HTML for export
                 grdProjQueue.RenderControl(hw);
 
-                // Add style for rendering HTML properly in Excel
-                Response.Write("<style> .text { mso-number-format:\"\\@\"; } </style>");
+                // Write the content to the response
                 Response.Output.Write(sw.ToString());
             }
         }
