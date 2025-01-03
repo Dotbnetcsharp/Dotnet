@@ -9,16 +9,3 @@ foreach (var batch in batches)
 }
 
 
-The requirement is to improve the property search feature in the NTP API:
-
-1. When a property is searched, check if it belongs to the current tax roll using a REFID.
-
-
-2. If it has a REFID, confirm it’s on the current tax roll.
-
-
-3. If it doesn’t, show this message: "Property not found on current Assessor file."
-
-
-
-This helps users know if a property is part of the current tax records.
