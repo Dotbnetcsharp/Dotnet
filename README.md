@@ -1,4 +1,19 @@
 
+
+Root Cause:
+In API/Search, TitleOfficer = QA is passed, but in API/Schedule, TitleOfficer = "". This mismatch causes the run history to not return properly because it depends on the TitleOfficer value.
+
+Fix:
+To get the proper run history, the same TitleOfficer value must be passed in both API/Search and API/Schedule. For example, if TitleOfficer = QA is used in the search, it must also be used in the schedule to ensure consistent results.
+
+Additional Note:
+If the DateThru parameter in the request is greater than the CountyToDate in the database, the system will automatically use the CountyToDate from the database to ensure accurate data.
+
+
+
+
+
+
 Root Cause:
 In API/Search, TitleOfficer = QA is passed, but in API/Schedule, TitleOfficer = "". This mismatch causes the run history to not return properly because it depends on the TitleOfficer value.
 
