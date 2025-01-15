@@ -1,3 +1,38 @@
+// Assume this is your original DataTable
+DataTable originalTable = GetDataTable(); // Replace with your method to fetch the DataTable
+
+// Create a new DataTable with the desired column names and sequence
+DataTable modifiedTable = new DataTable();
+modifiedTable.Columns.Add("NewMasterID", typeof(int));          // Renaming 'MasterID' to 'NewMasterID'
+modifiedTable.Columns.Add("NewCustomerID", typeof(string));     // Renaming 'CustomerID' to 'NewCustomerID'
+modifiedTable.Columns.Add("NewDocDate", typeof(DateTime));      // Renaming 'DocDate' to 'NewDocDate'
+modifiedTable.Columns.Add("NewDateReceived", typeof(DateTime)); // Renaming 'DateReceived' to 'NewDateReceived'
+modifiedTable.Columns.Add("NewRecordingInfo", typeof(string));  // Renaming 'RecordingInfo' to 'NewRecordingInfo'
+modifiedTable.Columns.Add("NewDiscrepancyType", typeof(string));// Renaming 'DiscrepancyType' to 'NewDiscrepancyType'
+
+// Transfer data from the original DataTable to the new one in the desired sequence
+foreach (DataRow row in originalTable.Rows)
+{
+    modifiedTable.Rows.Add(
+        row["MasterID"],
+        row["CustomerID"],
+        row["DocDate"],
+        row["DateReceived"],
+        row["RecordingInfo"],
+        row["DiscrepancyType"]
+    );
+}
+
+// At this point, `modifiedTable` contains the modified structure and data
+// You can now save `modifiedTable` or use it as needed
+SaveTableToDatabase(modifiedTable); // Replace with your saving logic
+
+
+
+
+
+
+
 
 
 Root Cause:
