@@ -1,4 +1,9 @@
 
+FeedIterator<Address> feedIterator = documentContainer.GetItemLinqQueryable<Address>()
+    .Where(p => p.PartitionKey == itemResponse.DocumentSearchId.ToString()) // Replace 'PartitionKey' with the correct property name
+    .ToFeedIterator();
+
+
 List<Address> allAddresses = new List<Address>();
 FeedIterator<Address> feedIterator = documentContainer.GetItemLinqQueryable<Address>()
     .Where(p => p.PartitionKey == itemResponse.DocumentSearchId.ToString())
