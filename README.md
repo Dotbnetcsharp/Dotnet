@@ -1,4 +1,28 @@
 
+List<APNMainEntity> allApns = new List<APNMainEntity>();
+
+// Initialize the FeedIterator
+var feedIterator = documentContainer.GetItemLinqQueryable<APNMainEntity>()
+    .Where(p => 
+        p.PartitionKey == itemResponse.DocumentSearchId.ToString() ||
+        (itemResponse.Matchcorelationid != null && p.PartitionKey == itemResponse.Matchcorelationid.ToString()))
+    .ToFeedIterator();
+
+// Iterate through all pages
+while (feedIterator.HasMoreResults)
+{
+    var response = await feedIterator.ReadNextAsync();
+    allApns.AddRange(response); // Add current page of results to the list
+}
+
+// Optionally log the end time after fetching all data
+apiCosmosLog.EndTime = DateTime.UtcNow;
+
+
+
+
+
+
 
 List<AddressMainEntity> allAddresses = new List<AddressMainEntity>();
 
