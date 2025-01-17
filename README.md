@@ -1,4 +1,24 @@
 
+
+List<AddressMainEntity> allAddresses = new List<AddressMainEntity>();
+
+// Initialize the FeedIterator
+var feedIterator = documentContainer.GetItemLinqQueryable<AddressMainEntity>()
+    .Where(p => p.PartitionKey == itemResponse.DocumentSearchId.ToString())
+    .ToFeedIterator();
+
+// Iterate through all pages
+while (feedIterator.HasMoreResults)
+{
+    var response = await feedIterator.ReadNextAsync();
+    allAddresses.AddRange(response); // Add current page of results to the list
+}
+
+// Proceed with the mapped results
+var addressesMapped = _mapper.Map<ICollection<Address>>(allAddresses);
+
+
+
 FeedIterator<Address> feedIterator = documentContainer.GetItemLinqQueryable<Address>()
     .Where(p => p.PartitionKey == itemResponse.DocumentSearchId.ToString()) // Replace 'PartitionKey' with the correct property name
     .ToFeedIterator();
