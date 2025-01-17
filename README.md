@@ -1,4 +1,24 @@
 
+List<OwnerNameEntity> allOwners = new List<OwnerNameEntity>();
+
+// Initialize the FeedIterator
+var feedIterator = documentContainer.GetItemLinqQueryable<OwnerNameEntity>()
+    .Where(p => 
+        p.PartitionKey == itemResponse.DocumentSearchId.ToString() || 
+        (itemResponse.Matchcorelationid != null && p.PartitionKey == itemResponse.Matchcorelationid.ToString()))
+    .ToFeedIterator();
+
+// Iterate through all pages
+while (feedIterator.HasMoreResults)
+{
+    var response = await feedIterator.ReadNextAsync();
+    allOwners.AddRange(response); // Add current page of results to the list
+}
+
+// Optionally process allOwners here
+
+
+
 List<APNMainEntity> allApns = new List<APNMainEntity>();
 
 // Initialize the FeedIterator
