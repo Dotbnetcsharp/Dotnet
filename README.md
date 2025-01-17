@@ -1,4 +1,10 @@
 
+
+*Dev note* 
+Cosmos RU scale value updated. We are now able to save 3000 records in Cosmos. Russle needs to check typeahead is returning only 3000 records.
+
+
+
 List<OwnerNameEntity> allOwners = new List<OwnerNameEntity>();
 
 // Initialize the FeedIterator
