@@ -1,4 +1,23 @@
 
+List<Address> allAddresses = new List<Address>();
+FeedIterator<Address> feedIterator = documentContainer.GetItemLinqQueryable<Address>()
+    .Where(p => p.PartitionKey == itemResponse.DocumentSearchId.ToString())
+    .ToFeedIterator();
+
+while (feedIterator.HasMoreResults)
+{
+    FeedResponse<Address> response = await feedIterator.ReadNextAsync();
+    allAddresses.AddRange(response);
+}
+
+// Proceed with mapping
+var addressesMapped = _mapper.Map<ICollection<Address>>(allAddresses);
+
+
+
+
+
+
 using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
