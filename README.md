@@ -1,3 +1,39 @@
+
+using System;
+using System.IO;
+using Newtonsoft.Json.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // File path
+        string filePath = @"C:\src\data.json";
+
+        try
+        {
+            // Read the file content
+            string jsonContent = File.ReadAllText(filePath);
+
+            // Parse the JSON content
+            JObject jsonObject = JObject.Parse(jsonContent);
+
+            // Get the "APNS" array and count its elements
+            JArray apnsArray = (JArray)jsonObject["APNS"];
+            int count = apnsArray.Count;
+
+            // Print the count
+            Console.WriteLine($"The 'APNS' array contains {count} items.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+}
+
+
+
 // Assume this is your original DataTable
 DataTable originalTable = GetDataTable(); // Replace with your method to fetch the DataTable
 
