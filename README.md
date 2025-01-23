@@ -1,4 +1,47 @@
+/////
 
+using (var connection = new SqlConnection(connectionStrings.NeoDatabase))
+{
+    var tblMsg = new DataTable();
+    tblMsg.Columns.Add(new DataColumn("msg", typeof(string)));
+
+    var query = await connection.QueryMultipleAsync(
+        StoredProceduresName.NEO.SP_usp_GetDocumentByInstOrRef,
+        new
+        {
+            FIPS = documentModel.CountyFips,
+            instrument_number = !string.IsNullOrWhiteSpace(documentModel.CMTDocumentNumber)
+                ? documentModel.CMTDocumentNumber
+                : !string.IsNullOrWhiteSpace(documentModel.DocumentNumber)
+                    ? documentModel.DocumentNumber
+                    : null,
+            Book = !string.IsNullOrWhiteSpace(documentModel.Book) ? documentModel.Book : null,
+            Page = !string.IsNullOrWhiteSpace(documentModel.Page) ? documentModel.Page : null,
+            cmtid = !string.IsNullOrWhiteSpace(documentModel.DocCMTID) ? documentModel.DocCMTID : null,
+            IRFlag = irFlag,
+            msg = tblMsg.AsTableValuedParameter("[dbo].[udt_msg]") // Adjust as per your database structure
+        },
+        commandTimeout: 30,
+        commandType: CommandType.StoredProcedure
+    );
+
+    var docs = await query.ReadAsync<DBDocumentModel>();
+    var refs = await query.ReadAsync<DBReferenceModel>();
+    var count = await query.ReadFirstOrDefaultAsync<DBDocumentCount>();
+
+    return new DBDocumentsModel
+    {
+        Documents = docs.ToList(),
+        References = refs.ToList(),
+        UniqueDocumentCount = count?.DocumentCount
+    };
+}
+
+
+
+
+
+////
 
 *Dev note* 
 Cosmos RU scale value updated. We are now able to save 3000 records in Cosmos. Russle needs to check typeahead is returning only 3000 records.
