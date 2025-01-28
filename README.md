@@ -13,6 +13,58 @@ public async Task<DBDocumentModel> GetDocumentByToVisitBkRef(string searchId, IB
 
         using (var connection = new SqlConnection(connectionStrings.NeoDatabase))
         {
+            var query = await connection.QueryMultipleAsync(
+                storedProcedureName.NEO_SP_usp_GetDocumentByToVisitBkRef,
+                new
+                {
+                    FIPS = documentModel.CountyFips,
+                    instrument_number = string.IsNullOrWhiteSpace(documentModel.CMTDInstrumentNumber) 
+                        ? documentModel.DocumentNumber 
+                        : documentModel.CMTDInstrumentNumber,
+                    book = string.IsNullOrWhiteSpace(documentModel.Book) ? null : documentModel.Book,
+                    deed_page = string.IsNullOrWhiteSpace(documentModel.DeedPage) ? null : documentModel.DeedPage,
+                    docGUID = string.IsNullOrWhiteSpace(documentModel.DocGUID) ? null : documentModel.DocGUID,
+                    msg = "" // Pass an empty string or a relevant message instead of a DataTable
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            var result = query.ReadAsync<DBDocumentModel>();
+            var documents = query.ReadAsync<DocumentsModel>();
+
+            return new DBDocumentModel
+            {
+                Message = result.Result.FirstOrDefault()?.Message ?? "",
+                Documents = documents.Result.ToList(),
+                Count = documents.Result.Count()
+            };
+        }
+    }
+    catch (Exception ex)
+    {
+        return new DBDocumentModel { Message = ex.Message };
+    }
+}
+
+
+
+
+
+public async Task<DBDocumentModel> GetDocumentByToVisitBkRef(string searchId, IBatchSearchDto documentModel)
+{
+    var stopwatch = new Stopwatch();
+    try
+    {
+        string icFlag = "";
+        if (documentModel.InstrumentSearchType == IRTypeEnum.InstrumentOnly)
+            icFlag = "I";
+        else if (documentModel.InstrumentSearchType == IRTypeEnum.ReferenceOnly)
+            icFlag = "R";
+        else if (documentModel.InstrumentSearchType == IRTypeEnum.InstrumentWithReference)
+            icFlag = "IR";
+
+        using (var connection = new SqlConnection(connectionStrings.NeoDatabase))
+        {
             var table = new DataTable();
             table.Columns.Add(new DataColumn("msg", typeof(string))); // Ensure this matches SQL table type
 
