@@ -1,3 +1,58 @@
+public async Task<DBDocumentModel> GetDocumentByToVisitBkRef(string searchId, IBatchSearchDto documentModel)
+{
+    var stopwatch = new Stopwatch();
+    try
+    {
+        string icFlag = "";
+        if (documentModel.InstrumentSearchType == IRTypeEnum.InstrumentOnly)
+            icFlag = "I";
+        else if (documentModel.InstrumentSearchType == IRTypeEnum.ReferenceOnly)
+            icFlag = "R";
+        else if (documentModel.InstrumentSearchType == IRTypeEnum.InstrumentWithReference)
+            icFlag = "IR";
+
+        using (var connection = new SqlConnection(connectionStrings.NeoDatabase))
+        {
+            var table = new DataTable();
+            table.Columns.Add(new DataColumn("msg", typeof(string))); // Ensure this matches SQL table type
+
+            // Add a sample value or modify as needed
+            table.Rows.Add("Your message here");
+
+            var query = await connection.QueryMultipleAsync(
+                storedProcedureName.NEO_SP_usp_GetDocumentByToVisitBkRef,
+                new
+                {
+                    FIPS = documentModel.CountyFips,
+                    instrument_number = string.IsNullOrWhiteSpace(documentModel.CMTDInstrumentNumber) 
+                        ? documentModel.DocumentNumber 
+                        : documentModel.CMTDInstrumentNumber,
+                    book = string.IsNullOrWhiteSpace(documentModel.Book) ? null : documentModel.Book,
+                    deed_page = string.IsNullOrWhiteSpace(documentModel.DeedPage) ? null : documentModel.DeedPage,
+                    docGUID = string.IsNullOrWhiteSpace(documentModel.DocGUID) ? null : documentModel.DocGUID,
+                    msg = table // Pass DataTable as a structured parameter
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            var result = query.ReadAsync<DBDocumentModel>();
+            var documents = query.ReadAsync<DocumentsModel>();
+
+            return new DBDocumentModel
+            {
+                Message = result.Result.FirstOrDefault()?.Message ?? "",
+                Documents = documents.Result.ToList(),
+                Count = documents.Result.Count()
+            };
+        }
+    }
+    catch (Exception ex)
+    {
+        return new DBDocumentModel { Message = ex.Message };
+    }
+}
+
+
 /////
 
 using (var connection = new SqlConnection(connectionStrings.NeoDatabase))
