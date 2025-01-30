@@ -1,4 +1,44 @@
-....
+
+using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
+{
+    var parameters = new DynamicParameters();
+    parameters.Add("FIPS", documentModel.CountyFips);
+    parameters.Add("instrument_number", string.IsNullOrWhiteSpace(documentModel.CMTDocumentNumber) ? null : documentModel.DocumentNumber);
+    parameters.Add("Document", documentModel.CMTDocumentNumber);
+    parameters.Add("Book", string.IsNullOrWhiteSpace(documentModel.Book) ? null : documentModel.Book);
+    parameters.Add("Page", string.IsNullOrWhiteSpace(documentModel.Page) ? null : documentModel.Page);
+    parameters.Add("IRFLAG", iRflag);
+    parameters.Add("CMTID", string.IsNullOrWhiteSpace(documentModel.DocCMTID) ? null : documentModel.DocCMTID);
+
+    // Adding OUTPUT parameter
+    parameters.Add("msg", dbType: DbType.String, size: 100, direction: ParameterDirection.Output);
+
+    // Execute stored procedure and retrieve the message as a result
+    var result = await connection.QueryAsync(
+        StoredProceduresName.NEO_SP_usp_GetDocumentByInstWithRref,
+        parameters,
+        commandTimeout: 30,
+        commandType: CommandType.StoredProcedure
+    );
+
+    // Retrieve the output message from the parameters
+    string outputMessage = parameters.Get<string>("msg");
+
+    // Create an anonymous object with a custom column name
+    var resultWithColumnName = new { TxtMessage = outputMessage };
+
+    Console.WriteLine($"Output Message: {resultWithColumnName.TxtMessage}");
+}
+
+
+
+
+
+
+
+
+
+......yhhj....
 
 using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
 {
