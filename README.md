@@ -1,3 +1,44 @@
+....
+
+using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
+{
+    var parameters = new DynamicParameters();
+    parameters.Add("FIPS", documentModel.CountyFips);
+    parameters.Add("InstrumentNumber", string.IsNullOrWhiteSpace(documentModel.CMTDocumentNumber) ? null : documentModel.DocumentNumber);
+    parameters.Add("Book", string.IsNullOrWhiteSpace(documentModel.Book) ? null : documentModel.Book);
+    parameters.Add("Page", string.IsNullOrWhiteSpace(documentModel.Page) ? null : documentModel.Page);
+    parameters.Add("CMTID", string.IsNullOrWhiteSpace(documentModel.DocCMTID) ? null : documentModel.DocCMTID);
+    parameters.Add("IRFLAG", iRflag);
+
+    var query = await connection.QueryAsync<dynamic>(
+        StoredProceduresName.NEO_SP_usp_GetDocumentByInstWithRref,
+        parameters,
+        commandTimeout: 30,
+        commandType: CommandType.StoredProcedure
+    );
+
+    // Convert to a list
+    var resultList = query.ToList();
+
+    if (resultList.Count == 0 || resultList.First().ContainsKey("TxtMessage"))
+    {
+        Console.WriteLine("Output Message: Invalid Input");
+    }
+    else
+    {
+        // Process your data
+        Console.WriteLine("Data Found:");
+        foreach (var row in resultList)
+        {
+            Console.WriteLine(row);
+        }
+    }
+}
+....
+
+
+
+
 public async Task<DBDocumentModel> GetDocumentByToVisitBkRef(string searchId, IBatchSearchDto documentModel)
 {
     var stopwatch = new Stopwatch();
