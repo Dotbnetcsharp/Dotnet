@@ -2,6 +2,37 @@
 using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
 {
     var parameters = new DynamicParameters();
+    parameters.Add("@FIPS", documentModel.CountryFips);
+    parameters.Add("@instrument_number", documentModel.CMTDocumentNumber);
+    parameters.Add("@Book", string.IsNullOrWhiteSpace(documentModel.Book) ? null : documentModel.Book);
+    parameters.Add("@Page", string.IsNullOrWhiteSpace(documentModel.Page) ? null : documentModel.Page);
+    parameters.Add("@cmtid", string.IsNullOrWhiteSpace(documentModel.DocCMTID) ? null : documentModel.DocCMTID);
+    parameters.Add("@IRFlag", IrFlag);
+    parameters.Add("@msg", dbType: DbType.String, direction: ParameterDirection.Output, size: 1000); // Output Parameter
+
+    await connection.ExecuteAsync("NEO.SP_usp_GetDocumentByInstWithRef", parameters, commandType: CommandType.StoredProcedure);
+
+    // Retrieve the output parameter
+    string txtMessage = parameters.Get<string>("@msg");
+
+    return new DBDocumentModel
+    {
+        Message = new DBMessage { Message = txtMessage }
+    };
+}
+
+
+
+
+
+
+
+
+
+
+using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
+{
+    var parameters = new DynamicParameters();
     parameters.Add("FIPS", documentModel.CountyFips);
     parameters.Add("instrument_number", string.IsNullOrWhiteSpace(documentModel.CMTDocumentNumber) ? null : documentModel.DocumentNumber);
     parameters.Add("Document", documentModel.CMTDocumentNumber);
