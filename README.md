@@ -1,4 +1,9 @@
-
+if (!(SearchRequest.DocumentNumber?.Any() ?? false) &&  // Check if DocumentNumber is not provided
+    !(SearchRequest.CMTDocumentNumber?.Any() ?? false) && // Check if CMTDocumentNumber is not provided
+    (!(SearchRequest.Book?.Any() ?? false) || !(SearchRequest.Page?.Any() ?? false))) // Ensure both Book and Page are provided together
+{
+    throw new BadRequestException("EC-03", "Document Search", "No document information provided. Please provide either Document Number, CMT Document Number, or both Book and Page to perform the search.");
+}
 using (var connection = new SqlConnection(_connectionStrings.NeoDatabase))
 {
     var parameters = new DynamicParameters();
