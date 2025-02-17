@@ -1,3 +1,10 @@
+
+Map<String, List<String>> headers = httpWrapper.getHeaders();
+for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+    System.out.println(entry.getKey() + ": " + entry.getValue());
+}
+
+
 if (!(SearchRequest.DocumentNumber?.Any() ?? false) &&  // Check if DocumentNumber is not provided
     !(SearchRequest.CMTDocumentNumber?.Any() ?? false) && // Check if CMTDocumentNumber is not provided
     (!(SearchRequest.Book?.Any() ?? false) || !(SearchRequest.Page?.Any() ?? false))) // Ensure both Book and Page are provided together
