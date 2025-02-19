@@ -1,4 +1,33 @@
 
+
+public DataTable GetNCBBatchHistory()
+{
+    DataTable dtResult = new DataTable();
+    
+    try
+    {
+        Database DBObj = getDatabase(databaseName); // Ensure DBObj is initialized
+        if (DBObj == null)
+        {
+            CCEventLog.WriteToEventLog("CustomerCenterEventLog", "DALHelper : DBObj is null");
+            return dtResult;
+        }
+
+        string query = "SELECT * FROM NCBBacthhisyry"; // Ensure table name is correct
+        DbCommand dbCommand = DBObj.GetSqlStringCommand(query); // Assuming method exists
+
+        dtResult = DBObj.ExecuteDataSet(dbCommand).Tables[0]; // Assuming ExecuteDataSet is valid
+
+    }
+    catch (Exception ex)
+    {
+        CCEventLog.WriteToEventLog("CustomerCenterEventLog", "DALHelper : Error in GetNCBBatchHistory - " + ex.Message);
+    }
+
+    return dtResult;
+}
+
+.....
 Map<String, List<String>> headers = httpWrapper.getHeaders();
 for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
     System.out.println(entry.getKey() + ": " + entry.getValue());
