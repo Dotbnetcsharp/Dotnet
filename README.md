@@ -1,3 +1,21 @@
+
+Message = result.Item1.Count() > 0 ? null : 
+    "No record match found for " + 
+    string.Join(" ", new[]
+    {
+        itemResponse?.InstrumentWithReferenceSearch?.DocumentNum,
+        itemResponse?.InstrumentWithReferenceSearch?.CMTDocumentNumber,
+        itemResponse?.InstrumentWithReferenceSearch?.Book,
+        itemResponse?.InstrumentWithReferenceSearch?.Page
+    }.Where(s => !string.IsNullOrWhiteSpace(s))) + 
+    " search parameter.";
+
+
+    
+
+
+
+
 Message = result.Item1.Count() > 0 ? null : 
     "No record match found for " + 
     (itemResponse?.InstrumentWithReferenceSearch?.DocumentNum + " " ?? "") + 
