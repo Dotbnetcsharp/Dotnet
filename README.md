@@ -1,3 +1,16 @@
+Message = result.Item1.Count() > 0 ? null : 
+    "No record match found for " + 
+    (itemResponse?.InstrumentWithReferenceSearch?.DocumentNum + " " ?? "") + 
+    (itemResponse?.InstrumentWithReferenceSearch?.CMTDocumentNumber + " " ?? "") + 
+    (itemResponse?.InstrumentWithReferenceSearch?.Book + " " ?? "") + 
+    (itemResponse?.InstrumentWithReferenceSearch?.Page + " " ?? "") + 
+    "search parameter.";
+
+    
+
+
+
+
 if (records != null && records.Count() > 0)
 {
     var filteredRecords = records.Where(x => x.RecordNumber != null); // Exclude null values
