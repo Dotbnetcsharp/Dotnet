@@ -1,3 +1,29 @@
+var searchValues = new List<string>();
+
+if (!string.IsNullOrWhiteSpace(itemResponse?.InstrumentWithReferenceSearch?.DocumentNum))
+{
+    searchValues.Add(itemResponse.InstrumentWithReferenceSearch.DocumentNum);
+}
+else if (!string.IsNullOrWhiteSpace(itemResponse?.InstrumentWithReferenceSearch?.CMTDocumentNumber))
+{
+    searchValues.Add(itemResponse.InstrumentWithReferenceSearch.CMTDocumentNumber);
+}
+else if (!string.IsNullOrWhiteSpace(itemResponse?.InstrumentWithReferenceSearch?.Book) &&
+         !string.IsNullOrWhiteSpace(itemResponse?.InstrumentWithReferenceSearch?.Page))
+{
+    searchValues.Add(itemResponse.InstrumentWithReferenceSearch.Book);
+    searchValues.Add(itemResponse.InstrumentWithReferenceSearch.Page);
+}
+
+Message = result.Item1.Count() > 0 || searchValues.Count == 0
+    ? null
+    : "No record match found for " + string.Join(" ", searchValues) + " search parameter.";
+
+
+    
+
+
+
 
 Message = result.Item1.Count() > 0 ? null : 
     "No record match found for " + 
