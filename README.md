@@ -5,6 +5,42 @@ if (Count > 3000)
 {
     int skip = 0;  
     int maxBatchSize = 3000;
+    int totalCount = (int)Count; // Ensure Count is an int
+
+    while (skip < totalCount)
+    {
+        int currentBatchSize = Math.Min(maxBatchSize, totalCount - skip);
+
+        string finalUrl = $"{azureAddressApiGetURL}&$top={currentBatchSize}";
+
+        if (skip > 0)
+        {
+            finalUrl += $"&$skip={skip}";
+        }
+
+        apiUrls.Add(finalUrl);
+        skip += currentBatchSize;
+    }
+}
+else
+{
+    apiUrls.Add($"{azureAddressApiGetURL}&$top={(int)Count}");
+}
+
+return apiUrls;
+
+
+
+
+
+
+azureAddressApiGetURL += addressAzrStng.QueryType;
+azureAddressApiGetURL += addressAzrStng.Count;
+
+if (Count > 3000)
+{
+    int skip = 0;  
+    int maxBatchSize = 3000;
 
     while (skip < Count)
     {
