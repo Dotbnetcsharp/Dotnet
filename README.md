@@ -1,3 +1,53 @@
+List<string> urlList = new List<string>();
+
+// Construct the base URL (without skip)
+string baseUrl = $"{azureAddressSearchIndex.BaseURL}{azureAddressSearchIndex.DocsURL}" +
+                 $"{azureAddressSearchIndex.ApiVersion}" +
+                 $"{azureAddressSearchIndex.SearchMode}" +
+                 $"{azureAddressSearchIndex.QueryType}" +
+                 $"{azureAddressSearchIndex.Count}";
+
+// Pagination logic
+if (totalCount > 3000)
+{
+    int skip = 0;
+    int maxBatchSize = 3000;
+
+    while (skip < totalCount)
+    {
+        string finalUrl = baseUrl; // Start with the base URL
+
+        // Add skip only after the first request
+        if (skip > 0)
+        {
+            finalUrl += $"&$skip={skip}";
+        }
+
+        // Add the generated URL to the list
+        urlList.Add(finalUrl);
+
+        // Increment skip for the next request
+        skip += maxBatchSize;
+    }
+}
+else
+{
+    // If total count is ≤ 3000, return just the base URL
+    urlList.Add(baseUrl);
+}
+
+// Return the list of URLs
+return urlList;
+
+
+
+.....
+
+
+
+
+
+
 private List<string> GetTypeAheadAddressApiURLs(
     string address, AzureSearchFilter filterBy, string stateCode, string countyFips, 
     int totalCount, bool isAmbiguousSearch = false, string StreetNumber = null, 
