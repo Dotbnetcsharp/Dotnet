@@ -1,3 +1,12 @@
+
+if (count == 2) {
+    if (ScraperUtils.getDoubleValue(document.getElementById("ctl00_MainContent_TOTALDUE").text()) > 0) {
+        redemptionAmount1 = String.format("%.2f", 
+            ScraperUtils.getDoubleValue(document.getElementById("ctl00_MainContent_TOTALDUE").text()) - currentdue);
+        redemptionDate1 = ScraperUtils.getLastDayOfCurrentMonth().replaceAll("/", "-").trim();
+    }
+}
+
 var searchValues = new List<string>();
 
 if (!string.IsNullOrWhiteSpace(itemResponse?.InstrumentWithReferenceSearch?.DocumentNum))
