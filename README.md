@@ -3,6 +3,45 @@ azureAddressApiGetURL += addressAzrStng.Count;
 
 if (Count > 3000)
 {
+    int skip = 0;  
+    int maxBatchSize = 3000;
+
+    while (skip < Count)
+    {
+        int currentBatchSize = Math.Min(maxBatchSize, Count - skip);
+
+        // Construct URL dynamically without modifying existing URL
+        string finalUrl = $"{azureAddressApiGetURL}&$top={currentBatchSize}";
+
+        // Add $skip only if it's not the first batch
+        if (skip > 0)
+        {
+            finalUrl += $"&$skip={skip}";
+        }
+
+        apiUrls.Add(finalUrl);
+        skip += currentBatchSize; // Move to next batch
+    }
+}
+else
+{
+    // If count <= 3000, no need to paginate
+    apiUrls.Add($"{azureAddressApiGetURL}&$top={Count}");
+}
+
+return apiUrls;
+
+
+...
+
+
+
+
+azureAddressApiGetURL += addressAzrStng.QueryType;
+azureAddressApiGetURL += addressAzrStng.Count;
+
+if (Count > 3000)
+{
     int skip = 0;  // Ensure it's 'int'
     int maxBatchSize = 3000;
 
