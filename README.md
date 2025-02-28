@@ -1,3 +1,46 @@
+azureAddressApiGetURL = addressAzrStng.QueryType;
+azureAddressApiGetURL += addressAzrStng.Count;
+
+if (Count > 3000)
+{
+    int skip = 0;
+    int maxBatchSize = 3000;
+    int totalCount = (int)Count; // Ensure Count is an int
+
+    while (skip < totalCount)
+    {
+        // Determine remaining records and update $top dynamically
+        int currentBatchSize = Math.Min(maxBatchSize, totalCount - skip);
+
+        // Update $top in the existing URL (preserve the structure)
+        string finalUrl = Regex.Replace(azureAddressApiGetURL, @"\$top=\d+", $"$top={currentBatchSize}");
+
+        // Add $skip only if it's not the first request
+        if (skip > 0)
+        {
+            finalUrl += $"&$skip={skip}";
+        }
+
+        apiUrls.Add(finalUrl);
+        skip += currentBatchSize; // Move to next batch
+    }
+}
+else
+{
+    // For count <= 3000, just update $top in the original URL
+    string finalUrl = Regex.Replace(azureAddressApiGetURL, @"\$top=\d+", $"$top={(int)Count}");
+    apiUrls.Add(finalUrl);
+}
+
+return apiUrls;
+
+
+
+
+
+
+
+
 azureAddressApiGetURL += addressAzrStng.QueryType;
 azureAddressApiGetURL += addressAzrStng.Count;
 
