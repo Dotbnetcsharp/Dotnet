@@ -1,3 +1,9 @@
+Dev Note:
+
+Instrument search type information is not available in type-ahead results. We are only using it to pass as a parameter to the stored procedure (SP).
+
+
+
 Task: Standardizing Instrument Number Lookup in the NTP API
 
 Your system needs to support instrument number lookups in multiple formats. Users can enter instrument numbers with or without delimiters, and the system should correctly identify, format, and return standardized values.
