@@ -1,3 +1,35 @@
+using System;
+using System.Text.RegularExpressions;
+
+public class InstrumentParserService
+{
+    public string ParseInstrumentInput(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return "Invalid input";
+
+        // Remove all delimiters
+        string cleanedInput = Regex.Replace(input, @"[\/.,:\s\-_\\n]", "");
+
+        // Extract year (first 4 or last 4 digits)
+        if (cleanedInput.Length > 4)
+        {
+            string firstFour = cleanedInput.Substring(0, 4);
+            string lastFour = cleanedInput.Substring(cleanedInput.Length - 4);
+
+            if (IsValidYear(firstFour)) return $"{firstFour}.{cleanedInput.Substring(4)}";
+            if (IsValidYear(lastFour)) return $"{lastFour}.{cleanedInput.Substring(0, cleanedInput.Length - 4)}";
+        }
+
+        return "Invalid format";
+    }
+
+    private bool IsValidYear(string yearStr) => int.TryParse(yearStr, out int year) && year >= 2020 && year <= DateTime.Now.Year;
+}
+
+
+
+
+
 Dev Note:
 
 Instrument search type information is not available in type-ahead results. We are only using it to pass as a parameter to the stored procedure (SP).
