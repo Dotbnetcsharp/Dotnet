@@ -1,6 +1,4 @@
-nicknamelist = nicknamelist.GroupBy(x => x.Nickname).Select(g => g.First()).ToList();
-
-ist = System.Linq.Enumerable.DistinctBy(nicknamelist, x => x.Nickname).ToList();
+Dev Note: In the request, the documentno field is incorrect. We need to pass DocumentNumber instead, as it is correctly defined in the DTO.
 
 
 using System;
