@@ -1,3 +1,6 @@
+ist = System.Linq.Enumerable.DistinctBy(nicknamelist, x => x.Nickname).ToList();
+
+
 using System;
 using System.Text.RegularExpressions;
 
