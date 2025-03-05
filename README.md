@@ -1,3 +1,5 @@
+nicknamelist = nicknamelist.GroupBy(x => x.Nickname).Select(g => g.First()).ToList();
+
 ist = System.Linq.Enumerable.DistinctBy(nicknamelist, x => x.Nickname).ToList();
 
 
