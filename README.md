@@ -1,3 +1,24 @@
+
+import java.util.regex.*;
+
+public class Main {
+    public static void main(String[] args) {
+        String cookie = "dnn IsMobile=False; language=en-US; ASPXANONYMOUS=XG0-Je8_EIofYM1Wi7unGf2bulV6g-wDr1zXEWak1X6anmJSqGyzHr1euQkvnWqr6f2nfg4oPIiHCK8-0Fv3a1w4QFCj2yazEyI2ew4K4Ytbecjm0; ASP.NET_SessionId=m1r2jpxosz42sswp10uugvlw";
+
+        Pattern pattern = Pattern.compile("ASP.NET_SessionId=([^;]+)");
+        Matcher matcher = pattern.matcher(cookie);
+
+        if (matcher.find()) {
+            System.out.println("ASP.NET SessionId: " + matcher.group(1));
+        } else {
+            System.out.println("ASP.NET SessionId not found.");
+        }
+    }
+}
+
+
+
+
 Dev Note: The API first checks for DocumentNumber in the request. If DocumentNumber is not provided, then as a second priority, it will check for CmtDocumentNo and fetch records using it.
 
 
