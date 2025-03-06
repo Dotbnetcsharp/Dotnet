@@ -1,3 +1,7 @@
+Dev Note: The API first checks for DocumentNumber in the request. If DocumentNumber is not provided, then as a second priority, it will check for CmtDocumentNo and fetch records using it.
+
+
+
 Dev Note: In the request, the documentno field is incorrect. We need to pass DocumentNumber instead, as it is correctly defined in the DTO.
 
 
