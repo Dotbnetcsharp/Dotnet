@@ -1,4 +1,32 @@
+import java.util.*;
 
+public class CookieCleaner {
+    public static void main(String[] args) {
+        List<String> cookies = httpWrapper.getHeaders("Set-Cookie");
+
+        // Define unwanted attributes
+        String[] unwantedAttributes = { "path=/;", "HttpOnly", "SameSite=Lax" };
+
+        // Use LinkedHashSet to remove duplicates while maintaining order
+        Set<String> uniqueCookies = new LinkedHashSet<>(cookies);
+
+        // Clean cookies
+        List<String> cleanedCookies = new ArrayList<>();
+        for (String cookie : uniqueCookies) {
+            for (String attr : unwantedAttributes) {
+                cookie = cookie.replace(attr, "").trim();
+            }
+            // Remove "expires" attribute along with its date
+            cookie = cookie.replaceAll("expires=[^;]+;?", "").trim();
+            cleanedCookies.add(cookie.replaceAll(";\\s*;", ";").replaceAll(";\\s*$", ""));
+        }
+
+        // Output cleaned cookies
+        System.out.println("Filtered Cookies:");
+        cleanedCookies.forEach(System.out::println);
+    }
+}
+..
 import java.util.*;
 
 public class CookieCleaner {
