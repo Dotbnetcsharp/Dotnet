@@ -1,3 +1,26 @@
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // Simulating the response from httpWrapper.getHeaders("Set-Cookie")
+        List<String> cookies = httpWrapper.getHeaders("Set-Cookie");
+
+        // Using LinkedHashSet to remove duplicates while maintaining order
+        Set<String> uniqueCookies = new LinkedHashSet<>(cookies);
+
+        // Converting back to a list if needed
+        List<String> filteredCookies = new ArrayList<>(uniqueCookies);
+
+        // Print the filtered cookies
+        System.out.println("Filtered Unique Cookies:");
+        for (String cookie : filteredCookies) {
+            System.out.println(cookie);
+        }
+    }
+}
+
+
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
