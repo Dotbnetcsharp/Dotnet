@@ -1,3 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        // Get cookies dynamically
+        List<string> cookies = httpWrapper.getHeaders("Set-Cookie");
+
+        // Remove duplicates dynamically
+        List<string> uniqueCookies = cookies.Distinct().ToList();
+
+        // Print the unique cookies
+        Console.WriteLine("Filtered Unique Cookies:");
+        foreach (string cookie in uniqueCookies)
+        {
+            Console.WriteLine(cookie);
+        }
+    }
+}
+
 import java.util.List;
 import java.util.ArrayList;
 
