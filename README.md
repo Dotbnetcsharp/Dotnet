@@ -1,3 +1,34 @@
+import java.util.List;
+import java.util.ArrayList;
+
+public class CookieExtractor {
+    public static void main(String[] args) {
+        // Simulating the cookies retrieved from httpWrapper.getHeaders("Set-Cookie")
+        List<String> cookies = new ArrayList<>();
+        cookies.add("dnn_IsMobile=False; path=/; HttpOnly");
+        cookies.add("language=en-US; path=/; HttpOnly");
+        cookies.add("ASPXANONYMOUS=XGO-Je8_EIofYM1Wi7unGf2buLv6g-wDr1ZxEWak1X6anmJSqGyzHr1euQkvnWqr6f2nfg4oPIiHCK8-0Fv3a1w4QFCj2yazEyI2ew4K4Ytbecjn0; expires=Thu, 15-May-2025 15:31:26 GMT; path=/; HttpOnly");
+        cookies.add("ASP.NET_SessionId=m1r2jpxosz42sswp10uugvlw; path=/; HttpOnly; SameSite=Lax");
+
+        // Extracting required cookies
+        String outputCookie = "";
+        for (String cookie : cookies) {
+            if (cookie.startsWith("dnn_IsMobile") || cookie.startsWith("language") || 
+                cookie.startsWith("ASPXANONYMOUS") || cookie.startsWith("ASP.NET_SessionId")) {
+                outputCookie += cookie.split(";")[0] + "; \n"; // Extract key-value pair only
+            }
+        }
+
+        // Printing the required cookies
+        System.out.println("Output Cookies:");
+        System.out.println(outputCookie);
+    }
+}
+
+
+
+
+
 
 import java.util.regex.*;
 
