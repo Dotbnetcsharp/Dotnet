@@ -1,3 +1,67 @@
+using System;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using ClosedXML.Excel;
+using System.DirectoryServices.AccountManagement;
+
+public class ExcelReader
+{
+    public static DataTable ReadExcel(string filePath)
+    {
+        DataTable dt = new DataTable();
+
+        // Get full name from Active Directory
+        string currentUser;
+        using (var context = new PrincipalContext(ContextType.Domain))
+        {
+            var user = UserPrincipal.Current;
+            currentUser = user?.DisplayName ?? Environment.UserName;
+        }
+
+        if (File.Exists(filePath))
+        {
+            using (var workbook = new XLWorkbook(filePath))
+            {
+                var worksheet = workbook.Worksheet(1); // Read first sheet
+                bool firstRow = true;
+                int userColumnIndex = -1;
+
+                foreach (var row in worksheet.RowsUsed())
+                {
+                    var cellValues = row.Cells().Select(cell => cell.Value.ToString()).ToArray();
+
+                    if (firstRow)
+                    {
+                        // Add column headers
+                        foreach (var cell in cellValues)
+                            dt.Columns.Add(cell);
+
+                        // Find the index of the "Employee Name" column
+                        userColumnIndex = Array.IndexOf(cellValues, "Employee Name");
+                        firstRow = false;
+                    }
+                    else if (userColumnIndex != -1 && userColumnIndex < cellValues.Length)
+                    {
+                        // Check if the row matches the logged-in user's full name
+                        if (cellValues[userColumnIndex].Equals(currentUser, StringComparison.OrdinalIgnoreCase))
+                        {
+                            dt.Rows.Add(cellValues);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            MessageBox.Show("File not found!");
+        }
+
+        return dt;
+    }
+}
+
 Install-Package System.DirectoryServices.AccountManagement
 
 
