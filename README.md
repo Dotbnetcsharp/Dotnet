@@ -1,3 +1,77 @@
+<Window x:Class="WPFExcelReader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Excel Reader" Height="450" Width="800">
+    <Grid>
+        <Button Content="Load Excel Data" Width="150" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+                Click="LoadExcelData"/>
+        
+        <DataGrid x:Name="ExcelDataGrid" AutoGenerateColumns="True" Margin="10,50,10,10"/>
+    </Grid>
+</Window>
+
+using System;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using ClosedXML.Excel;
+
+namespace WPFExcelReader
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void LoadExcelData(object sender, RoutedEventArgs e)
+        {
+            string networkFilePath = @"\\AZUVNAPPDTLM013.datatrace.local\DTSStaging\DeveloperShare\FAI\2025\FAI - Planned Leave.xlsx";
+            DataTable dt = ReadExcel(networkFilePath);
+            ExcelDataGrid.ItemsSource = dt.DefaultView; // Bind to DataGrid
+        }
+
+        private DataTable ReadExcel(string filePath)
+        {
+            DataTable dt = new DataTable();
+
+            if (File.Exists(filePath))
+            {
+                using (var workbook = new XLWorkbook(filePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Read first sheet
+                    bool firstRow = true;
+                    foreach (var row in worksheet.RowsUsed())
+                    {
+                        if (firstRow)
+                        {
+                            foreach (var cell in row.Cells())
+                                dt.Columns.Add(cell.Value.ToString()); // Add column headers
+                            firstRow = false;
+                        }
+                        else
+                        {
+                            dt.Rows.Add(row.Cells().Select(cell => cell.Value.ToString()).ToArray());
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("File not found!");
+            }
+
+            return dt;
+        }
+    }
+}
+
+
+
+
+.....
 String taxYear = (inputElement != null) ? inputElement.attr("value") : "";
 
 
