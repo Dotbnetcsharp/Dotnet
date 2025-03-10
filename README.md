@@ -1,3 +1,85 @@
+<Window x:Class="ExcelDataApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button Content="Load My Data" Click="LoadData_Click" Width="120" Height="30" Margin="10"/>
+        <DataGrid x:Name="dataGrid" AutoGenerateColumns="True" Margin="10,50,10,10"/>
+    </Grid>
+</Window>
+...
+using System;
+using System.Data;
+using System.Linq;
+using System.Windows;
+using ClosedXML.Excel;
+
+namespace ExcelDataApp
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void LoadData_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = "C:\\Path\\To\\Your\\File.xlsx"; // Update the correct file path
+            string currentUser = Environment.UserName.ToLower(); // Get PC username
+
+            DataTable dt = ReadExcel(filePath, currentUser);
+
+            if (dt.Rows.Count > 0)
+            {
+                dataGrid.ItemsSource = dt.DefaultView;
+            }
+            else
+            {
+                MessageBox.Show("No matching data found!");
+            }
+        }
+
+        private DataTable ReadExcel(string filePath, string currentUser)
+        {
+            DataTable dt = new DataTable();
+
+            using (var workbook = new XLWorkbook(filePath))
+            {
+                var worksheet = workbook.Worksheet(1); // Read first worksheet
+                var rows = worksheet.RangeUsed().RowsUsed().ToList();
+
+                if (rows.Count < 2)
+                    return dt; // No data available
+
+                // Add column headers (from first row)
+                var headerRow = rows[0].Cells().Select(c => c.Value.ToString()).ToList();
+                foreach (var col in headerRow)
+                    dt.Columns.Add(col);
+
+                // Read data rows and filter by username
+                foreach (var row in rows.Skip(1))
+                {
+                    var rowData = row.Cells().Select(c => c.Value.ToString()).ToList();
+
+                    if (rowData.Count > 1)
+                    {
+                        string employeeName = rowData[1].ToLower().Replace(" ", "");
+                        if (employeeName.Contains(currentUser))
+                        {
+                            dt.Rows.Add(rowData.ToArray());
+                        }
+                    }
+                }
+            }
+
+            return dt;
+        }
+    }
+}
+
+
+
 using System;
 using System.Data;
 using System.IO;
