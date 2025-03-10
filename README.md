@@ -1,3 +1,97 @@
+
+Install-Package ClosedXML
+Install-Package DocumentFormat.OpenXml
+
+<Window x:Class="WPFExcelReader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Excel Reader" Height="450" Width="800">
+    <Grid>
+        <Button Content="Load My Data" Width="150" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+                Click="LoadExcelData"/>
+        
+        <DataGrid x:Name="ExcelDataGrid" AutoGenerateColumns="True" Margin="10,50,10,10"/>
+    </Grid>
+</Window>
+
+....
+
+using System;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using ClosedXML.Excel;
+
+namespace WPFExcelReader
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void LoadExcelData(object sender, RoutedEventArgs e)
+        {
+            string networkFilePath = @"\\AZUVNAPPDTLM013.datatrace.local\DTSStaging\DeveloperShare\FAI\2025\FAI - Planned Leave.xlsx";
+            DataTable dt = ReadExcel(networkFilePath);
+            ExcelDataGrid.ItemsSource = dt.DefaultView; // Bind to DataGrid
+        }
+
+        private DataTable ReadExcel(string filePath)
+        {
+            DataTable dt = new DataTable();
+            string currentUser = Environment.UserName; // Get logged-in user
+
+            if (File.Exists(filePath))
+            {
+                using (var workbook = new XLWorkbook(filePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Read first sheet
+                    bool firstRow = true;
+                    int userColumnIndex = -1;
+
+                    foreach (var row in worksheet.RowsUsed())
+                    {
+                        var cellValues = row.Cells().Select(cell => cell.Value.ToString()).ToArray();
+
+                        if (firstRow)
+                        {
+                            // Add column headers
+                            foreach (var cell in cellValues)
+                                dt.Columns.Add(cell);
+
+                            // Find the index of the "Employee Name" column
+                            userColumnIndex = Array.IndexOf(cellValues, "Employee Name");
+                            firstRow = false;
+                        }
+                        else if (userColumnIndex != -1 && userColumnIndex < cellValues.Length)
+                        {
+                            // Check if this row matches the logged-in user
+                            if (cellValues[userColumnIndex].Equals(currentUser, StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Ensure the DataTable has enough columns
+                                while (dt.Columns.Count < cellValues.Length)
+                                    dt.Columns.Add("Column" + dt.Columns.Count);
+
+                                dt.Rows.Add(cellValues);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("File not found!");
+            }
+
+            return dt;
+        }
+    }
+}
+
+
 <Window x:Class="WPFExcelReader.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
