@@ -1,3 +1,39 @@
+private DataTable ReadExcel(string filePath, string currentUser)
+{
+    DataTable dt = new DataTable();
+
+    using (var workbook = new XLWorkbook(filePath))
+    {
+        var worksheet = workbook.Worksheet("Leave Plan"); // Load "Leave Plan" sheet
+        var rows = worksheet.RangeUsed().RowsUsed().ToList();
+
+        if (rows.Count < 2)
+            return dt; // No data available
+
+        // Add column headers (from first row)
+        var headerRow = rows[0].Cells().Select(c => c.Value.ToString()).ToList();
+        foreach (var col in headerRow)
+            dt.Columns.Add(col);
+
+        // Read data rows and filter by username
+        foreach (var row in rows.Skip(1))
+        {
+            var rowData = row.Cells().Select(c => c.Value.ToString()).ToList();
+
+            if (rowData.Count > 1)
+            {
+                string employeeName = rowData[1].ToLower().Replace(" ", "");
+                if (employeeName.Contains(currentUser))
+                {
+                    dt.Rows.Add(rowData.ToArray());
+                }
+            }
+        }
+    }
+
+    return dt;
+}
+
 <Window x:Class="ExcelDataApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
