@@ -1,3 +1,28 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
+public class ExtractInputValue {
+    public static void main(String[] args) {
+        // Sample HTML containing the input field
+        String html = "<input name=\"dnn$ctl01$TaxYear\" type=\"text\" id=\"dnn_ctl01_TaxYear\" style=\"display: none;\" value=\"2025\" />";
+
+        // Parse the HTML
+        Document doc = Jsoup.parse(html);
+
+        // Select the input field using its ID
+        Element inputElement = doc.selectFirst("input[id=dnn_ctl01_TaxYear]");
+
+        if (inputElement != null) {
+            String value = inputElement.attr("value");
+            System.out.println("Extracted Value: " + value);
+        } else {
+            System.out.println("Input field not found!");
+        }
+    }
+}
+
+
 import java.util.*;
 
 public class CookieCleaner {
