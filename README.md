@@ -1,3 +1,15 @@
+import java.text.DecimalFormat;
+
+public class Main {
+    public static void main(String[] args) {
+        double result = 7556.91 / 2;
+        DecimalFormat df = new DecimalFormat("0.00");
+        System.out.println(df.format(result)); // Output: 3778.46
+    }
+}
+
+
+
 public class Main {
     public static void main(String[] args) {
         double result = 7556.91 / 2;
