@@ -1,3 +1,12 @@
+public class Main {
+    public static void main(String[] args) {
+        double result = 7556.91 / 2;
+        double roundedResult = Math.round(result * 100.0) / 100.0;
+        System.out.println(roundedResult); // Output: 3778.46
+    }
+}
+
+
 private DataTable ReadExcel(string filePath, string currentUser)
 {
     DataTable dt = new DataTable();
