@@ -1,3 +1,29 @@
+{
+  "ModuleName": "",
+  "MainFields": [
+    {
+      "FieldName": "Header",
+      "FieldInfo": {
+        "FieldType": 1,
+        "MinLength": 0,
+        "MaxLength": 50,
+        "Priority": 1,
+        "IsRequired": true
+      }
+    },
+    {
+      "FieldName": "Title",
+      "FieldInfo": {
+        "FieldType": 2,
+        "MinLength": 5,
+        "MaxLength": 100,
+        "Priority": 2,
+        "IsRequired": false
+      }
+    }
+  ]
+}.
+
 import java.text.DecimalFormat;
 
 public class Main {
