@@ -1,3 +1,20 @@
+
+using Newtonsoft.Json;
+using System;
+using System.Data;
+
+foreach (DataRow row in item.Tables[0].Rows)
+{
+    string jsonString = row["JsonData"].ToString(); // Assuming column name is "JsonData"
+    
+    if (!string.IsNullOrEmpty(jsonString)) // Check if the JSON is not null or empty
+    {
+        var jsonObject = JsonConvert.DeserializeObject(jsonString);
+        Console.WriteLine(JsonConvert.SerializeObject(jsonObject, Formatting.Indented)); // Pretty print JSON
+    }
+}
+
+
 {
   "ModuleName": "",
   "MainFields": [
