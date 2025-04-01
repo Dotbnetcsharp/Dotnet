@@ -1,65 +1,28 @@
-
-using Newtonsoft.Json;
-using System;
-using System.Data;
-
-foreach (DataRow row in item.Tables[0].Rows)
+namespace MyApi.Models
 {
-    string jsonString = row["JsonData"].ToString(); // Assuming column name is "JsonData"
-    
-    if (!string.IsNullOrEmpty(jsonString)) // Check if the JSON is not null or empty
+    public class EchoRequestDto
     {
-        var jsonObject = JsonConvert.DeserializeObject(jsonString);
-        Console.WriteLine(JsonConvert.SerializeObject(jsonObject, Formatting.Indented)); // Pretty print JSON
+        public string Name { get; set; }
+        public string Message { get; set; }
     }
 }
+using Microsoft.AspNetCore.Mvc;
+using MyApi.Models;
 
-
+namespace MyApi.Controllers
 {
-  "ModuleName": "",
-  "MainFields": [
+    [ApiController]
+    [Route("api/[controller]")]
+    public class EchoController : ControllerBase
     {
-      "FieldName": "Header",
-      "FieldInfo": {
-        "FieldType": 1,
-        "MinLength": 0,
-        "MaxLength": 50,
-        "Priority": 1,
-        "IsRequired": true
-      }
-    },
-    {
-      "FieldName": "Title",
-      "FieldInfo": {
-        "FieldType": 2,
-        "MinLength": 5,
-        "MaxLength": 100,
-        "Priority": 2,
-        "IsRequired": false
-      }
-    }
-  ]
-}.
-
-import java.text.DecimalFormat;
-
-public class Main {
-    public static void main(String[] args) {
-        double result = 7556.91 / 2;
-        DecimalFormat df = new DecimalFormat("0.00");
-        System.out.println(df.format(result)); // Output: 3778.46
+        [HttpPost]
+        public IActionResult EchoJson([FromBody] EchoRequestDto requestData)
+        {
+            return Ok(requestData);
+        }
     }
 }
 
-
-
-public class Main {
-    public static void main(String[] args) {
-        double result = 7556.91 / 2;
-        double roundedResult = Math.round(result * 100.0) / 100.0;
-        System.out.println(roundedResult); // Output: 3778.46
-    }
-}
 
 
 private DataTable ReadExcel(string filePath, string currentUser)
