@@ -1,3 +1,5 @@
+dotnet list package --include-transitive
+
 global.json..{
   "sdk": {
     "version": "8.0.204"
