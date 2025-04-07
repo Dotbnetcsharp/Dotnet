@@ -1,3 +1,8 @@
+
+dotnet add package System.Memory --version 4.5.5
+
+
+
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
