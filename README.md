@@ -1,3 +1,8 @@
+<PackageReference Include="System.Memory" Version="4.5.5">
+  <IncludeAssets>all</IncludeAssets>
+  <PrivateAssets>all</PrivateAssets>
+</PackageReference>
+
 dotnet list package --include-transitive
 
 global.json..{
