@@ -1,4 +1,8 @@
-
+global.json..{
+  "sdk": {
+    "version": "8.0.204"
+  }
+}
 
 {
   "sdk": {
