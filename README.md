@@ -1,3 +1,7 @@
+  <ItemGroup>
+    <FunctionsPreservedDependencies Include="System.Memory.Data.dll" />
+  </ItemGroup>
+
 <PackageReference Include="System.Memory" Version="4.5.5">
   <IncludeAssets>all</IncludeAssets>
   <PrivateAssets>all</PrivateAssets>
