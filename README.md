@@ -1,4 +1,10 @@
 
+
+{
+  "sdk": {
+    "version": "8.0.204"
+  }
+}
 dotnet add package System.Memory --version 4.5.5
 
 
