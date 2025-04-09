@@ -1,3 +1,31 @@
+// Assuming resultJson is your JSON string
+JSONObject root = new JSONObject(resultJson);
+
+// Now navigate inside
+JSONArray transactions = root.getJSONArray("Transactions");
+
+for (int i = 0; i < transactions.length(); i++) {
+    JSONObject transaction = transactions.getJSONObject(i);
+
+    if (transaction.has("LineItems") && !transaction.isNull("LineItems")) {
+        JSONArray lineItems = transaction.getJSONArray("LineItems");
+
+        for (int j = 0; j < lineItems.length(); j++) {
+            JSONObject lineItem = lineItems.getJSONObject(j);
+
+            if (lineItem.has("BillId")) {
+                String billId = lineItem.get("BillId").toString();
+                System.out.println("Found BillId inside LineItems: " + billId);
+            }
+        }
+    } else {
+        System.out.println("LineItems not found in transaction " + i);
+    }
+}
+
+
+
+
 System.out.println("Item: " + item.toString());
 
 // First check if LineItems array exists
