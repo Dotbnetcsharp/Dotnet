@@ -1,98 +1,40 @@
-// Assuming resultJson is your JSON string
-JSONObject root = new JSONObject(resultJson);
 
-// Now navigate inside
-JSONArray transactions = root.getJSONArray("Transactions");
+  .
+  
+  var isAmbiguous = string.IsNullOrWhiteSpace(searchItem.AddressSearch.PropertyId) 
+    && (!string.IsNullOrWhiteSpace(searchItem.AddressSearch.SearchedAddress));
 
-for (int i = 0; i < transactions.length(); i++) {
-    JSONObject transaction = transactions.getJSONObject(i);
+var addresses = await CallTypeAheadAddressSearchAzureApi(
+    searchItem.AddressSearch, searchItem.CountyFips, searchItem.SearchType, 
+    searchItem.StateFips, searchItem.State
+);
 
-    if (transaction.has("LineItems") && !transaction.isNull("LineItems")) {
-        JSONArray lineItems = transaction.getJSONArray("LineItems");
+// If no index count and address list is very large
+if (searchItem.IndexCount == null && addresses.Count() > 50)
+{
+    var result = addresses.Select(a => new AddressError
+    {
+        Errormsg = "Too many addresses found, please refine your search.",
+        PartitionKey = searchId
+    }).ToList();
 
-        for (int j = 0; j < lineItems.length(); j++) {
-            JSONObject lineItem = lineItems.getJSONObject(j);
+    await _cosmosDBService.GetDocumentContainer().BulkInsert(result);
 
-            if (lineItem.has("BillId")) {
-                String billId = lineItem.get("BillId").toString();
-                System.out.println("Found BillId inside LineItems: " + billId);
-            }
-        }
-    } else {
-        System.out.println("LineItems not found in transaction " + i);
-    }
+    return new DocumentsResultSummary
+    {
+        Status = ItemDBStatusEnum.Completed,
+        IsProposalList = true,
+        ResultCount = result.Count(),
+        DocumentsSearchId = searchId
+    };
 }
 
-
-
-
-System.out.println("Item: " + item.toString());
-
-// First check if LineItems array exists
-if (item.has("LineItems")) {
-    JSONArray lineItems = item.getJSONArray("LineItems");
-
-    // Loop through each item inside LineItems
-    for (int i = 0; i < lineItems.length(); i++) {
-        JSONObject lineItem = lineItems.getJSONObject(i);
-
-        // Now check if BillId exists inside lineItem
-        if (lineItem.has("BillId")) {
-            String billId = lineItem.get("BillId").toString();
-            System.out.println("Found BillId inside LineItems: " + billId);
-        }
-    }
-} else {
-    System.out.println("No LineItems found.");
+if (!isAmbiguous)
+{
+    addresses = addresses.Where(x => x.PropertyId == searchItem.AddressSearch.PropertyId).ToList();
 }
 
-System.out.println("Item: " + item.toString());
-
-if (item.has("BillId")) {
-    String billId = item.getString("BillId");
-    System.out.println("Found BillId directly: " + billId);
-} else {
-    Iterator<String> keys = item.keys();
-    while (keys.hasNext()) {
-        String key = keys.next();
-        Object value = item.get(key);
-        if (value instanceof JSONObject) {
-            JSONObject nestedObject = (JSONObject) value;
-            if (nestedObject.has("BillId")) {
-                String billId = nestedObject.getString("BillId");
-                System.out.println("Found BillId inside nested object: " + billId);
-            }
-        }
-    }
-}.
-
-
-
-  JSONArray dataItems = resultJson.getJSONArray("DataItem");
-for (int i = 0; i < dataItems.length(); i++) {
-    JSONObject item = dataItems.getJSONObject(i);
-    if (item.has("billid")) {
-        String billid = item.getString("billid");
-        System.out.println("Bill ID: " + billid);
-    } else {
-        // Check deeper if billid is inside a nested object
-        Iterator<String> keys = item.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            Object value = item.get(key);
-            if (value instanceof JSONObject) {
-                JSONObject nested = (JSONObject) value;
-                if (nested.has("billid")) {
-                    String billid = nested.getString("billid");
-                    System.out.println("Bill ID (nested): " + billid);
-                }
-            }
-        }
-    }
-}
-  
-  
-  
+// Continue your normal logic
   <ItemGroup>
     <FunctionsPreservedDependencies Include="System.Memory.Data.dll" />
   </ItemGroup>
