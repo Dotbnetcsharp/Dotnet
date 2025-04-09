@@ -1,3 +1,14 @@
+
+var result = new List<AddressError>
+{
+    new AddressError
+    {
+        Errormsg = "Too many addresses found, please refine your search.",
+        PartitionKey = searchId
+    }
+};
+
+
 JSONObject resultJson = new JSONObject(responseBody);
 
 JSONArray dataItems = resultJson.getJSONArray("DataItem");
