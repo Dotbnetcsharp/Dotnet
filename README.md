@@ -1,3 +1,29 @@
+
+  JSONArray dataItems = resultJson.getJSONArray("DataItem");
+for (int i = 0; i < dataItems.length(); i++) {
+    JSONObject item = dataItems.getJSONObject(i);
+    if (item.has("billid")) {
+        String billid = item.getString("billid");
+        System.out.println("Bill ID: " + billid);
+    } else {
+        // Check deeper if billid is inside a nested object
+        Iterator<String> keys = item.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = item.get(key);
+            if (value instanceof JSONObject) {
+                JSONObject nested = (JSONObject) value;
+                if (nested.has("billid")) {
+                    String billid = nested.getString("billid");
+                    System.out.println("Bill ID (nested): " + billid);
+                }
+            }
+        }
+    }
+}
+  
+  
+  
   <ItemGroup>
     <FunctionsPreservedDependencies Include="System.Memory.Data.dll" />
   </ItemGroup>
