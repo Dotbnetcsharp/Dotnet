@@ -1,39 +1,23 @@
+JSONObject resultJson = new JSONObject(responseBody);
 
-  .
-  
-  var isAmbiguous = string.IsNullOrWhiteSpace(searchItem.AddressSearch.PropertyId) 
-    && (!string.IsNullOrWhiteSpace(searchItem.AddressSearch.SearchedAddress));
+JSONArray dataItems = resultJson.getJSONArray("DataItem");
 
-var addresses = await CallTypeAheadAddressSearchAzureApi(
-    searchItem.AddressSearch, searchItem.CountyFips, searchItem.SearchType, 
-    searchItem.StateFips, searchItem.State
-);
+for (int i = 0; i < dataItems.length(); i++) {
+    JSONObject item = dataItems.getJSONObject(i);
 
-// If no index count and address list is very large
-if (searchItem.IndexCount == null && addresses.Count() > 50)
-{
-    var result = addresses.Select(a => new AddressError
-    {
-        Errormsg = "Too many addresses found, please refine your search.",
-        PartitionKey = searchId
-    }).ToList();
+    if (item.has("Assessments") && !item.isNull("Assessments")) {
+        JSONArray assessments = item.getJSONArray("Assessments");
 
-    await _cosmosDBService.GetDocumentContainer().BulkInsert(result);
+        for (int j = 0; j < assessments.length(); j++) {
+            JSONObject assessment = assessments.getJSONObject(j);
 
-    return new DocumentsResultSummary
-    {
-        Status = ItemDBStatusEnum.Completed,
-        IsProposalList = true,
-        ResultCount = result.Count(),
-        DocumentsSearchId = searchId
-    };
+            if (assessment.has("BillId")) {
+                String billId = assessment.getString("BillId");
+                System.out.println("Found BillId: " + billId);
+            }
+        }
+    }
 }
-
-if (!isAmbiguous)
-{
-    addresses = addresses.Where(x => x.PropertyId == searchItem.AddressSearch.PropertyId).ToList();
-}
-
 // Continue your normal logic
   <ItemGroup>
     <FunctionsPreservedDependencies Include="System.Memory.Data.dll" />
