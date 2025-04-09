@@ -1,4 +1,27 @@
 
+
+System.out.println("Item: " + item.toString());
+
+if (item.has("BillId")) {
+    String billId = item.getString("BillId");
+    System.out.println("Found BillId directly: " + billId);
+} else {
+    Iterator<String> keys = item.keys();
+    while (keys.hasNext()) {
+        String key = keys.next();
+        Object value = item.get(key);
+        if (value instanceof JSONObject) {
+            JSONObject nestedObject = (JSONObject) value;
+            if (nestedObject.has("BillId")) {
+                String billId = nestedObject.getString("BillId");
+                System.out.println("Found BillId inside nested object: " + billId);
+            }
+        }
+    }
+}.
+
+
+
   JSONArray dataItems = resultJson.getJSONArray("DataItem");
 for (int i = 0; i < dataItems.length(); i++) {
     JSONObject item = dataItems.getJSONObject(i);
