@@ -1,4 +1,22 @@
+System.out.println("Item: " + item.toString());
 
+// First check if LineItems array exists
+if (item.has("LineItems")) {
+    JSONArray lineItems = item.getJSONArray("LineItems");
+
+    // Loop through each item inside LineItems
+    for (int i = 0; i < lineItems.length(); i++) {
+        JSONObject lineItem = lineItems.getJSONObject(i);
+
+        // Now check if BillId exists inside lineItem
+        if (lineItem.has("BillId")) {
+            String billId = lineItem.get("BillId").toString();
+            System.out.println("Found BillId inside LineItems: " + billId);
+        }
+    }
+} else {
+    System.out.println("No LineItems found.");
+}
 
 System.out.println("Item: " + item.toString());
 
