@@ -1,4 +1,5 @@
-
+[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+public string ErrorMsg { get; set; }
 using Newtonsoft.Json;
 
 public class YourDto
