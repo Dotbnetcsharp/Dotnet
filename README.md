@@ -1,4 +1,15 @@
 
+using Newtonsoft.Json;
+
+public class YourDto
+{
+    public string Id { get; set; }
+
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public string ErrorMsg { get; set; }
+}
+
+
 var result = new List<AddressError>
 {
     new AddressError
