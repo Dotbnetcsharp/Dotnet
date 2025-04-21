@@ -1,4 +1,55 @@
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="DynamicNewentryPopup.aspx.cs" Inherits="DynamicNewentryPopup" %>
 
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Dynamic Entry Form</title>
+
+    <!-- Meta for responsive design -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    <style>
+        .custom-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .custom-input {
+            border-radius: 6px;
+            padding: 8px;
+        }
+    </style>
+
+    <!-- JS: Numeric Only Validation -->
+    <script type="text/javascript">
+        function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if (charCode < 48 || charCode > 57)
+                return false;
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- Dynamic Fields Will Be Added to this Panel -->
+                    <asp:PlaceHolder ID="phNewentryFields" runat="server" />
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Optional: Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
 protected void LoadNewEntryField(string Projectname)
 {
