@@ -1,3 +1,24 @@
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+if (fieldCounter % 2 == 0)
+{
+    currentRow = new Panel { CssClass = "row mb-3" };
+    phNewentryFields.Controls.Add(currentRow);
+}
+
+Panel colPanel = new Panel { CssClass = "col-md-6 mb-2" };
+
+Panel formGroup = new Panel { CssClass = "form-group" };
+formGroup.Controls.Add(lbl);
+formGroup.Controls.Add(ddl); // or txtBox
+
+colPanel.Controls.Add(formGroup);
+currentRow.Controls.Add(colPanel);
+
+
+
+
 <style>
     .custom-label {
         font-size: 14px;
