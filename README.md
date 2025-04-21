@@ -1,4 +1,28 @@
+<style>
+    .custom-label {
+        font-size: 14px;
+        color: #333;
+    }
+    .custom-input {
+        border-radius: 6px;
+        padding: 8px;
+    }
+</style>
+Label lbl = new Label
+{
+    Text = fieldname + ":",
+    CssClass = "form-label fw-bold mb-1 custom-label"
+};
 
+DropDownList ddl = new DropDownList
+{
+    ID = "ddl_" + fieldname,
+    CssClass = "form-select custom-input w-100"
+};
+
+
+
+..
 List<APNMainEntity> apns = new List<APNMainEntity>();
 
 if (searchRequest.Qualifiers.RecordsPerPage != null && searchRequest.Qualifiers.CurrentPage != null)
