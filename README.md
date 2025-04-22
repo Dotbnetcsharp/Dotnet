@@ -1,4 +1,24 @@
 
+var maxlengthContainer = document.getElementById('<%= maxlengthContainer.ClientID %>');
+if (!maxlengthContainer) return;
+
+if (datatype === 'date') {
+    maxlengthContainer.style.display = 'none';
+} else {
+    maxlengthContainer.style.display = 'block';
+}
+
+
+
+var maxlengthContainer = document.getElementById('maxlengthContainer');
+if (!maxlengthContainer) return; // Or handle gracefully
+
+if (datatype === 'date') {
+    maxlengthContainer.style.display = 'none';
+} else {
+    maxlengthContainer.style.display = 'block';
+}
+
 var maxlengthContainer = document.getElementById('maxlengthContainer');
 if (!maxlengthContainer) return; // Or handle gracefully
 
