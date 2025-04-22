@@ -1,4 +1,21 @@
+function handleDataTypeChange() {
+    var datatype = document.getElementById('<%= ddlDataType.ClientID %>').value;
+    var maxlengthContainer = document.getElementById('<%= maxlengthContainer.ClientID %>');
+    var txtMaxLength = document.getElementById('<%= txtmaxlength.ClientID %>');
+    var rfvMaxLength = document.getElementById('<%= rfvMaxLength.ClientID %>');
 
+    if (!maxlengthContainer || !txtMaxLength || !rfvMaxLength) return;
+
+    if (datatype === 'date') {
+        maxlengthContainer.style.display = 'none';
+        txtMaxLength.removeAttribute('required');
+        ValidatorEnable(document.getElementById('<%= rfvMaxLength.ClientID %>'), false);
+    } else {
+        maxlengthContainer.style.display = 'block';
+        txtMaxLength.setAttribute('required', 'required');
+        ValidatorEnable(document.getElementById('<%= rfvMaxLength.ClientID %>'), true);
+    }
+}
 var maxlengthContainer = document.getElementById('<%= maxlengthContainer.ClientID %>');
 if (!maxlengthContainer) return;
 
