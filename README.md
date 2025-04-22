@@ -1,3 +1,13 @@
+
+var maxlengthContainer = document.getElementById('maxlengthContainer');
+if (!maxlengthContainer) return; // Or handle gracefully
+
+if (datatype === 'date') {
+    maxlengthContainer.style.display = 'none';
+} else {
+    maxlengthContainer.style.display = 'block';
+}
+
 <%@ Page Language="C#" AutoEventWireup="true" CodeFile="DynamicNewentryPopup.aspx.cs" Inherits="DynamicNewentryPopup" %>
 
 <!DOCTYPE html>
