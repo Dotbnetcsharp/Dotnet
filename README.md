@@ -1,3 +1,9 @@
+The index count refers only to index-based results and does not apply to direct document fetches. Since the address '12493 JOHN ARTHUR' was an exact match from typeahead, it returned exact match results. Therefore, the document was fetched directly from the stored procedure.
+
+
+
+
+
 
 
 > "The index count refers only to index-based results and does not apply to direct document results. Since the address '1238 John Rather' was an exact match during typeahead (FAD), it did not return any index-based results. Instead, the document was fetched directly from the stored procedure."
