@@ -1,3 +1,14 @@
+
+
+> "The index count refers only to index-based results and does not apply to direct document results. Since the address '1238 John Rather' was an exact match during typeahead (FAD), it did not return any index-based results. Instead, the document was fetched directly from the stored procedure."
+>
+> 
+
+
+
+
+
+
 function handleDataTypeChange() {
     var datatype = document.getElementById('<%= ddlDataType.ClientID %>').value;
     var maxlengthContainer = document.getElementById('<%= maxlengthContainer.ClientID %>');
