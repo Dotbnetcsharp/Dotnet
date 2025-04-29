@@ -1,3 +1,16 @@
+DECLARE @sql NVARCHAR(MAX) = ''
+
+-- Generate DROP TABLE statements for all user tables
+SELECT @sql += 'DROP TABLE [' + SCHEMA_NAME(schema_id) + '].[' + name + '];' + CHAR(13)
+FROM sys.tables
+
+-- Disable foreign key constraints first
+EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'
+
+-- Execute the DROP TABLE statements
+EXEC sp_executesql @sql
+
+
 The index count refers only to index-based results and does not apply to direct document fetches. Since the address '12493 JOHN ARTHUR' was an exact match from typeahead, it returned exact match results. Therefore, the document was fetched directly from the stored procedure.
 
 
