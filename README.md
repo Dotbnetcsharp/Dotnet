@@ -1,3 +1,13 @@
+
+// Select the specific table that contains the keyword "Receipt #"
+Element correctTable = doc2.select("table:has(td:matchesOwn(Receipt #))").first();
+
+// Print the entire table (with <table>, <tr>, <td> etc.)
+System.out.println(correctTable.outerHtml());
+
+
+
+
 DECLARE @sql NVARCHAR(MAX) = ''
 
 -- Generate DROP TABLE statements for all user tables
