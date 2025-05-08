@@ -1,11 +1,8 @@
 
-// Select the specific table that contains the keyword "Receipt #"
-Element correctTable = doc2.select("table:has(td:matchesOwn(Receipt #))").first();
-
-// Print the entire table (with <table>, <tr>, <td> etc.)
-System.out.println(correctTable.outerHtml());
-
-
+..
+Dev Note:
+This behavior is as per FAD design. In the Owner Search response, we do not receive a PropertyId or MatchedPropertyId, so we display the error message: "Property not found on current Assessor file."
+However, in the APN and Address Search responses, the PropertyId is present, so no such error message is displayed.
 
 
 DECLARE @sql NVARCHAR(MAX) = ''
