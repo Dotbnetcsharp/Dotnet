@@ -1,3 +1,22 @@
+// Duplicate detection
+var duplicateGroups = searchItems
+    .GroupBy(x => x.AddressSearch?.SearchedAddress)
+    .Where(g => g.Count() > 1)
+    .ToList();
+
+if (duplicateGroups.Any())
+{
+    Console.WriteLine("Duplicates detected:");
+    foreach (var group in duplicateGroups)
+    {
+        Console.WriteLine($" - Address: {group.Key}, Count: {group.Count()}");
+        foreach (var item in group)
+        {
+            Console.WriteLine($"   - Duplicate ID: {item.Id}");
+        }
+    }
+}
+
 
 ..
 Dev Note:
