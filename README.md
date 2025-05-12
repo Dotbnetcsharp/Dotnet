@@ -1,3 +1,6 @@
+We have implemented a condition to suppress the error message in specific scenarios.
+If the input is invalid and the BypassIndex flag is set to true, then the message "Property not found on current Assessor file." will not be shown
+
 // Duplicate detection
 var duplicateGroups = searchItems
     .GroupBy(x => x.AddressSearch?.SearchedAddress)
