@@ -1,3 +1,17 @@
+
+[HttpGet("status")]
+public IActionResult GetReportsByDateRange([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
+{
+    var results = ReportStore.Reports.Values
+        .Where(r => r.FromDate >= fromDate && r.ToDate <= toDate)
+        .ToList();
+
+    return Ok(results);
+}
+
+
+
+
 {
   "fromDate": "2024-05-01T00:00:00",
   "toDate": "2024-05-28T23:59:59"
