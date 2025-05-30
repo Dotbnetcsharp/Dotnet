@@ -1,76 +1,50 @@
-ReportGenerator.Api/
-│
-├── Controllers/
-│   └── ReportController.cs
-│
-├── Models/
-│   ├── ReportRequest.cs
-│   ├── ReportStatus.cs
-│   └── ReportStore.cs
-│
-├── Services/
-│   ├── ReportQueueSender.cs
-│   ├── ReportQueueProcessor.cs
-│   └── ReportHub.cs
-│
-├── appsettings.json
-├── Program.cs
-├── Startup.cs (optional if not using minimal hosting model)
-└── ReportGenerator.Api.csproj
-
-{
-  "AzureServiceBus": {
-    "ConnectionString": "<Your Connection String>",
-    "TopicBegin": "publication-begin",
-    "TopicStatus": "publication-status",
-    "SubscriptionStatus": "subscription-status"
-  },
-  "AllowedHosts": "*"
-}
-
-namespace ReportGenerator.Api.Models;
-
-public class ReportRequest
-{
-    public Guid RequestId { get; set; } = Guid.NewGuid();
-    public DateTime FromDate { get; set; }
-    public DateTime ToDate { get; set; }
-    public string Status { get; set; } = "Pending";
-}
-
-namespace ReportGenerator.Api.Models;
-
-public static class ReportStore
-{
-    public static List<ReportRequest> Reports = new();
-}
-
 using Azure.Messaging.ServiceBus;
 using ReportGenerator.Api.Models;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ReportGenerator.Api.Services;
 
-public class ReportQueueSender
+public class ReportQueueProcessor : BackgroundService
 {
     private readonly IConfiguration _config;
-    private readonly ServiceBusClient _client;
-    private readonly string _topic;
+    private readonly IHubContext<ReportHub> _hubContext;
+    private readonly ServiceBusProcessor _processor;
 
-    public ReportQueueSender(IConfiguration config)
+    public ReportQueueProcessor(IConfiguration config, IHubContext<ReportHub> hubContext)
     {
         _config = config;
-        _client = new ServiceBusClient(_config["AzureServiceBus:ConnectionString"]);
-        _topic = _config["AzureServiceBus:TopicBegin"];
+        _hubContext = hubContext;
+
+        var client = new ServiceBusClient(_config["AzureServiceBus:ConnectionString"]);
+        _processor = client.CreateProcessor(_config["AzureServiceBus:TopicStatus"], _config["AzureServiceBus:SubscriptionStatus"]);
     }
 
-    public async Task SendReportRequestAsync(ReportRequest request)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var sender = _client.CreateSender(_topic);
-        var message = new ServiceBusMessage(System.Text.Json.JsonSerializer.Serialize(request))
+        _processor.ProcessMessageAsync += async args =>
         {
-            MessageId = request.RequestId.ToString()
+            var body = args.Message.Body.ToString();
+            var report = System.Text.Json.JsonSerializer.Deserialize<ReportRequest>(body);
+            if (report != null)
+            {
+                var existing = ReportStore.Reports.FirstOrDefault(x => x.RequestId == report.RequestId);
+                if (existing != null)
+                {
+                    existing.Status = "Completed";
+                }
+
+                await _hubContext.Clients.All.SendAsync("ReportUpdated", report);
+            }
+
+            await args.CompleteMessageAsync(args.Message);
         };
 
-        await sender.SendMessageAsync(message);
+        _processor.ProcessErrorAsync += args =>
+        {
+            Console.WriteLine(args.Exception.ToString());
+            return Task.CompletedTask;
+        };
+
+        return _processor.StartProcessingAsync(stoppingToken);
     }
 }
