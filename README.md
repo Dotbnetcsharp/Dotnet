@@ -1,4 +1,7 @@
-
+{
+  "fromDate": "2024-05-01T00:00:00",
+  "toDate": "2024-05-28T23:59:59"
+}
 using ReportGenerator.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
