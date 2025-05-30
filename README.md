@@ -1,3 +1,14 @@
+using Microsoft.AspNetCore.SignalR;
+
+namespace ReportGenerator.Api.Services;
+
+public class ReportHub : Hub { }
+
+
+
+
+
+
 using Azure.Messaging.ServiceBus;
 using ReportGenerator.Api.Models;
 using Microsoft.AspNetCore.SignalR;
