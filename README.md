@@ -1,3 +1,23 @@
+ReportGenerator.Api/
+│
+├── Controllers/
+│   └── ReportController.cs
+│
+├── Models/
+│   ├── ReportRequest.cs
+│   ├── ReportStatus.cs
+│   └── ReportStore.cs
+│
+├── Services/
+│   ├── ReportQueueSender.cs
+│   ├── ReportQueueProcessor.cs
+│   └── ReportHub.cs
+│
+├── appsettings.json
+├── Program.cs
+├── Startup.cs (optional if not using minimal hosting model)
+└── ReportGenerator.Api.csproj
+
 {
   "AzureServiceBus": {
     "ConnectionString": "<Your Connection String>",
