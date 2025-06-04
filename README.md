@@ -7,63 +7,63 @@ class Program
 {
     static void Main()
     {
-        var file1Path = "file1.json";
-        var file2Path = "file2.json";
+        string file1Path = "file1.json";
+        string file2Path = "file2.json";
 
         var json1 = File.ReadAllText(file1Path);
         var json2 = File.ReadAllText(file2Path);
 
-        var j1 = JToken.Parse(json1);
-        var j2 = JToken.Parse(json2);
+        var jToken1 = JToken.Parse(json1);
+        var jToken2 = JToken.Parse(json2);
 
-        var diff = GetExactDifference(j1, j2);
+        var diff = ExtractDifferences(jToken1, jToken2);
 
-        Console.WriteLine("Only changed/missing values from file1:");
-        Console.WriteLine(diff?.ToString(Formatting.Indented) ?? "No difference.");
+        Console.WriteLine("=== RED PART DIFF ===");
+        Console.WriteLine(diff?.ToString(Formatting.Indented) ?? "No Difference Found");
     }
 
-    static JToken GetExactDifference(JToken file1, JToken file2)
+    static JToken ExtractDifferences(JToken source, JToken target)
     {
-        if (JToken.DeepEquals(file1, file2))
+        if (JToken.DeepEquals(source, target))
             return null;
 
-        if (file1.Type != file2?.Type)
-            return file1;
+        if (source.Type != target?.Type)
+            return source;
 
-        if (file1.Type == JTokenType.Object)
+        if (source.Type == JTokenType.Object)
         {
-            var obj1 = (JObject)file1;
-            var obj2 = (JObject)file2;
+            JObject diff = new JObject();
+            var srcObj = (JObject)source;
+            var tgtObj = (JObject)target;
 
-            var diffObj = new JObject();
-
-            foreach (var prop in obj1.Properties())
+            foreach (var prop in srcObj.Properties())
             {
-                var name = prop.Name;
-                var val1 = prop.Value;
-                var val2 = obj2.TryGetValue(name, out var cmpVal) ? cmpVal : null;
+                var srcVal = prop.Value;
+                var tgtVal = tgtObj.TryGetValue(prop.Name, out JToken targetVal) ? targetVal : null;
 
-                var diff = GetExactDifference(val1, val2);
-                if (diff != null)
-                    diffObj[name] = diff;
+                var nestedDiff = ExtractDifferences(srcVal, tgtVal);
+                if (nestedDiff != null)
+                {
+                    diff[prop.Name] = nestedDiff;
+                }
             }
 
-            return diffObj.HasValues ? diffObj : null;
+            return diff.HasValues ? diff : null;
         }
 
-        if (file1.Type == JTokenType.Array)
+        if (source.Type == JTokenType.Array)
         {
-            var arr1 = (JArray)file1;
-            var arr2 = (JArray)file2;
+            var srcArray = (JArray)source;
+            var tgtArray = (JArray)target;
 
-            var diffArr = new JArray();
+            var diffArray = new JArray();
 
-            foreach (var item in arr1)
+            foreach (var item in srcArray)
             {
                 bool matched = false;
-                foreach (var cmpItem in arr2)
+                foreach (var cmp in tgtArray)
                 {
-                    if (JToken.DeepEquals(item, cmpItem))
+                    if (JToken.DeepEquals(item, cmp))
                     {
                         matched = true;
                         break;
@@ -71,13 +71,13 @@ class Program
                 }
 
                 if (!matched)
-                    diffArr.Add(item);
+                    diffArray.Add(item);
             }
 
-            return diffArr.Count > 0 ? diffArr : null;
+            return diffArray.HasValues ? diffArray : null;
         }
 
-        // Primitive value changed
-        return file1;
+        // Primitive type (string, number, bool, null): return source only if value changed
+        return !JToken.DeepEquals(source, target) ? source : null;
     }
 }
