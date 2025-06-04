@@ -1,119 +1,70 @@
-
 using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        if (args.Length < 2)
-        {
-            Console.WriteLine("Usage: JsonDiff <file1.json> <file2.json>");
-            return;
-        }
+        var file1Path = "file1.json";
+        var file2Path = "file2.json";
 
-        string file1Path = args[0];
-        string file2Path = args[1];
+        var json1 = File.ReadAllText(file1Path);
+        var json2 = File.ReadAllText(file2Path);
 
-        try
-        {
-            string file1Content = File.ReadAllText(file1Path);
-            string file2Content = File.ReadAllText(file2Path);
+        var j1 = JToken.Parse(json1);
+        var j2 = JToken.Parse(json2);
 
-            JToken json1 = JToken.Parse(file1Content);
-            JToken json2 = JToken.Parse(file2Content);
-
-            Console.WriteLine("Differences between the files:");
-            FindDifferences(json1, json2, "");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
+        Console.WriteLine("Differences found:\n");
+        FindDifferences(j1, j2, "$");
     }
 
     static void FindDifferences(JToken token1, JToken token2, string path)
     {
-        if (JToken.DeepEquals(token1, token2))
-        {
+        if (token1 == null && token2 == null)
             return;
-        }
 
-        if (token1 == null || token2 == null)
+        if (token1 == null || token2 == null || token1.Type != token2.Type)
         {
-            Console.WriteLine($"{path}:");
-            Console.WriteLine($"  File1: {token1 ?? "null"}");
-            Console.WriteLine($"  File2: {token2 ?? "null"}");
-            Console.WriteLine();
-            return;
-        }
-
-        if (token1.GetType() != token2.GetType())
-        {
-            Console.WriteLine($"{path}:");
-            Console.WriteLine($"  Type mismatch: File1 is {token1.Type}, File2 is {token2.Type}");
-            Console.WriteLine();
+            Console.WriteLine($"Difference at path {path}");
+            Console.WriteLine($"File1: {token1}");
+            Console.WriteLine($"File2: {token2}\n");
             return;
         }
 
         switch (token1.Type)
         {
             case JTokenType.Object:
-                var obj1 = (JObject)token1;
-                var obj2 = (JObject)token2;
-
-                // Find properties only in file1
-                foreach (var property in obj1.Properties())
+                foreach (var prop in ((JObject)token1).Properties())
                 {
-                    if (!obj2.TryGetValue(property.Name, out var token2Value))
-                    {
-                        Console.WriteLine($"{path}/{property.Name}:");
-                        Console.WriteLine($"  File1 has property with value: {property.Value}");
-                        Console.WriteLine($"  File2 is missing this property");
-                        Console.WriteLine();
-                    }
-                    else
-                    {
-                        FindDifferences(property.Value, token2Value, $"{path}/{property.Name}");
-                    }
-                }
-
-                // Find properties only in file2
-                foreach (var property in obj2.Properties())
-                {
-                    if (!obj1.TryGetValue(property.Name, out var token1Value))
-                    {
-                        Console.WriteLine($"{path}/{property.Name}:");
-                        Console.WriteLine($"  File1 is missing this property");
-                        Console.WriteLine($"  File2 has property with value: {property.Value}");
-                        Console.WriteLine();
-                    }
+                    var nextPath = $"{path}.{prop.Name}";
+                    var val2 = ((JObject)token2)[prop.Name];
+                    FindDifferences(prop.Value, val2, nextPath);
                 }
                 break;
 
             case JTokenType.Array:
                 var arr1 = (JArray)token1;
                 var arr2 = (JArray)token2;
+                int max = Math.Max(arr1.Count, arr2.Count);
 
-                if (arr1.Count != arr2.Count)
+                for (int i = 0; i < max; i++)
                 {
-                    Console.WriteLine($"{path}:");
-                    Console.WriteLine($"  Array length differs: File1 has {arr1.Count}, File2 has {arr2.Count}");
-                    Console.WriteLine();
-                }
-
-                for (int i = 0; i < Math.Min(arr1.Count, arr2.Count); i++)
-                {
-                    FindDifferences(arr1[i], arr2[i], $"{path}[{i}]");
+                    var item1 = i < arr1.Count ? arr1[i] : null;
+                    var item2 = i < arr2.Count ? arr2[i] : null;
+                    var nextPath = $"{path}[{i}]";
+                    FindDifferences(item1, item2, nextPath);
                 }
                 break;
 
             default:
-                Console.WriteLine($"{path}:");
-                Console.WriteLine($"  File1: {token1}");
-                Console.WriteLine($"  File2: {token2}");
-                Console.WriteLine();
+                if (!JToken.DeepEquals(token1, token2))
+                {
+                    Console.WriteLine($"Difference at path {path}");
+                    Console.WriteLine($"File1: {token1}");
+                    Console.WriteLine($"File2: {token2}\n");
+                }
                 break;
         }
     }
