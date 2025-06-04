@@ -17,79 +17,65 @@ class Program
         var token1 = JToken.Parse(json1);
         var token2 = JToken.Parse(json2);
 
-        var result = new JObject
-        {
-            ["onlyInFirst"] = GetDifferences(token1, token2),
-            ["onlyInSecond"] = GetDifferences(token2, token1)
-        };
+        var diff = GetJsonDiff(token1, token2);
 
         Console.WriteLine("Differences:");
-        Console.WriteLine(result.ToString(Formatting.Indented));
+        Console.WriteLine(diff.ToString(Formatting.Indented));
     }
 
-    static JToken GetDifferences(JToken source, JToken comparison)
+    static JToken GetJsonDiff(JToken token1, JToken token2)
     {
-        if (source.Type != comparison.Type)
-            return source;
+        if (JToken.DeepEquals(token1, token2))
+            return null;
 
-        if (source.Type == JTokenType.Object)
+        if (token1.Type != token2.Type)
+            return token1;
+
+        if (token1.Type == JTokenType.Object)
         {
             var result = new JObject();
-            var srcObj = (JObject)source;
-            var cmpObj = (JObject)comparison;
+            var obj1 = (JObject)token1;
+            var obj2 = (JObject)token2;
 
-            foreach (var prop in srcObj.Properties())
+            foreach (var prop in obj1.Properties())
             {
-                if (!cmpObj.TryGetValue(prop.Name, out var cmpValue))
-                {
-                    result[prop.Name] = prop.Value;
-                }
-                else
-                {
-                    var diff = GetDifferences(prop.Value, cmpValue);
-                    if (diff != null && !diff.IsNullOrEmpty())
-                        result[prop.Name] = diff;
-                }
+                var prop2 = obj2.Property(prop.Name);
+                var diff = prop2 == null ? prop.Value : GetJsonDiff(prop.Value, prop2.Value);
+
+                if (diff != null)
+                    result[prop.Name] = diff;
             }
 
             return result.HasValues ? result : null;
         }
 
-        if (source.Type == JTokenType.Array)
+        if (token1.Type == JTokenType.Array)
         {
-            var result = new JArray();
-            var srcArray = (JArray)source;
-            var cmpArray = (JArray)comparison;
+            var array1 = token1 as JArray;
+            var array2 = token2 as JArray;
 
-            foreach (var item in srcArray)
+            var diffArray = new JArray();
+
+            foreach (var item in array1)
             {
-                bool exists = false;
-                foreach (var cmpItem in cmpArray)
+                bool found = false;
+                foreach (var item2 in array2)
                 {
-                    if (JToken.DeepEquals(item, cmpItem))
+                    if (JToken.DeepEquals(item, item2))
                     {
-                        exists = true;
+                        found = true;
                         break;
                     }
                 }
 
-                if (!exists)
-                    result.Add(item);
+                if (!found)
+                    diffArray.Add(item);
             }
 
-            return result.Count > 0 ? result : null;
+            return diffArray.Count > 0 ? diffArray : null;
         }
 
-        return !JToken.DeepEquals(source, comparison) ? source : null;
-    }
-}
-
-static class JTokenExtensions
-{
-    public static bool IsNullOrEmpty(this JToken token)
-    {
-        return token == null ||
-               (token.Type == JTokenType.Object && !token.HasValues) ||
-               (token.Type == JTokenType.Array && !token.HasValues);
+        // Different primitive value
+        return token1;
     }
 }
