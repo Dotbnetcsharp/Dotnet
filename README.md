@@ -1,83 +1,120 @@
+
 using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        string file1Path = "file1.json";
-        string file2Path = "file2.json";
-
-        var json1 = File.ReadAllText(file1Path);
-        var json2 = File.ReadAllText(file2Path);
-
-        var jToken1 = JToken.Parse(json1);
-        var jToken2 = JToken.Parse(json2);
-
-        var diff = ExtractDifferences(jToken1, jToken2);
-
-        Console.WriteLine("=== RED PART DIFF ===");
-        Console.WriteLine(diff?.ToString(Formatting.Indented) ?? "No Difference Found");
-    }
-
-    static JToken ExtractDifferences(JToken source, JToken target)
-    {
-        if (JToken.DeepEquals(source, target))
-            return null;
-
-        if (source.Type != target?.Type)
-            return source;
-
-        if (source.Type == JTokenType.Object)
+        if (args.Length < 2)
         {
-            JObject diff = new JObject();
-            var srcObj = (JObject)source;
-            var tgtObj = (JObject)target;
-
-            foreach (var prop in srcObj.Properties())
-            {
-                var srcVal = prop.Value;
-                var tgtVal = tgtObj.TryGetValue(prop.Name, out JToken targetVal) ? targetVal : null;
-
-                var nestedDiff = ExtractDifferences(srcVal, tgtVal);
-                if (nestedDiff != null)
-                {
-                    diff[prop.Name] = nestedDiff;
-                }
-            }
-
-            return diff.HasValues ? diff : null;
+            Console.WriteLine("Usage: JsonDiff <file1.json> <file2.json>");
+            return;
         }
 
-        if (source.Type == JTokenType.Array)
+        string file1Path = args[0];
+        string file2Path = args[1];
+
+        try
         {
-            var srcArray = (JArray)source;
-            var tgtArray = (JArray)target;
+            string file1Content = File.ReadAllText(file1Path);
+            string file2Content = File.ReadAllText(file2Path);
 
-            var diffArray = new JArray();
+            JToken json1 = JToken.Parse(file1Content);
+            JToken json2 = JToken.Parse(file2Content);
 
-            foreach (var item in srcArray)
-            {
-                bool matched = false;
-                foreach (var cmp in tgtArray)
+            Console.WriteLine("Differences between the files:");
+            FindDifferences(json1, json2, "");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    static void FindDifferences(JToken token1, JToken token2, string path)
+    {
+        if (JToken.DeepEquals(token1, token2))
+        {
+            return;
+        }
+
+        if (token1 == null || token2 == null)
+        {
+            Console.WriteLine($"{path}:");
+            Console.WriteLine($"  File1: {token1 ?? "null"}");
+            Console.WriteLine($"  File2: {token2 ?? "null"}");
+            Console.WriteLine();
+            return;
+        }
+
+        if (token1.GetType() != token2.GetType())
+        {
+            Console.WriteLine($"{path}:");
+            Console.WriteLine($"  Type mismatch: File1 is {token1.Type}, File2 is {token2.Type}");
+            Console.WriteLine();
+            return;
+        }
+
+        switch (token1.Type)
+        {
+            case JTokenType.Object:
+                var obj1 = (JObject)token1;
+                var obj2 = (JObject)token2;
+
+                // Find properties only in file1
+                foreach (var property in obj1.Properties())
                 {
-                    if (JToken.DeepEquals(item, cmp))
+                    if (!obj2.TryGetValue(property.Name, out var token2Value))
                     {
-                        matched = true;
-                        break;
+                        Console.WriteLine($"{path}/{property.Name}:");
+                        Console.WriteLine($"  File1 has property with value: {property.Value}");
+                        Console.WriteLine($"  File2 is missing this property");
+                        Console.WriteLine();
+                    }
+                    else
+                    {
+                        FindDifferences(property.Value, token2Value, $"{path}/{property.Name}");
                     }
                 }
 
-                if (!matched)
-                    diffArray.Add(item);
-            }
+                // Find properties only in file2
+                foreach (var property in obj2.Properties())
+                {
+                    if (!obj1.TryGetValue(property.Name, out var token1Value))
+                    {
+                        Console.WriteLine($"{path}/{property.Name}:");
+                        Console.WriteLine($"  File1 is missing this property");
+                        Console.WriteLine($"  File2 has property with value: {property.Value}");
+                        Console.WriteLine();
+                    }
+                }
+                break;
 
-            return diffArray.HasValues ? diffArray : null;
+            case JTokenType.Array:
+                var arr1 = (JArray)token1;
+                var arr2 = (JArray)token2;
+
+                if (arr1.Count != arr2.Count)
+                {
+                    Console.WriteLine($"{path}:");
+                    Console.WriteLine($"  Array length differs: File1 has {arr1.Count}, File2 has {arr2.Count}");
+                    Console.WriteLine();
+                }
+
+                for (int i = 0; i < Math.Min(arr1.Count, arr2.Count); i++)
+                {
+                    FindDifferences(arr1[i], arr2[i], $"{path}[{i}]");
+                }
+                break;
+
+            default:
+                Console.WriteLine($"{path}:");
+                Console.WriteLine($"  File1: {token1}");
+                Console.WriteLine($"  File2: {token2}");
+                Console.WriteLine();
+                break;
         }
-
-        // Primitive type (string, number, bool, null): return source only if value changed
-        return !JToken.DeepEquals(source, target) ? source : null;
     }
 }
