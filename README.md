@@ -1,3 +1,19 @@
+Frontend: React (UI to monitor & download reports)
+
+Backend: ASP.NET Core 8.0 API
+
+Real-time: SignalR for live status updates
+
+Messaging: Azure Service Bus (topics/subscriptions)
+
+Worker: .NET Worker Service to fetch from queue
+
+Database: Cosmos DB (status & report storage)
+
+NTP System: Existing NTP API for request processing
+
+
+
 
 Frontend: React (with SignalR Client for real-time updates)
 
