@@ -1,31 +1,5 @@
-var legalInfo = StarterPropertySearchRequestDto.StarterLegalLibrary?.FirstOrDefault();
+MergeSearchId = Guid.TryParse(guid, out var parsedGuid) ? parsedGuid : (Guid?)null,
 
-StarterProperty = new StarterPropertyEntity
-{
-    Address = StarterPropertySearchRequestDto.Address,
-    StreetNumber = StarterPropertySearchRequestDto.StreetNumber,
-    StreetName = StarterPropertySearchRequestDto.StreetName,
-    StreetType = StarterPropertySearchRequestDto.StreetType,
-    PreDirection = StarterPropertySearchRequestDto.PreDirection,
-    PostDirection = StarterPropertySearchRequestDto.PostDirection,
-    UnitNumber = StarterPropertySearchRequestDto.UnitNumber,
-    OwnerName = StarterPropertySearchRequestDto.OwnerName,
-    LegalId = StarterPropertySearchRequestDto.LegalId,
-    BypassIndex = StarterPropertySearchRequestDto.BypassIndex,
-    ProductCodeDescription = StarterPropertySearchRequestDto.ProductCodeDescription,
+Matchcorrelationid = Guid.TryParse(matchcorrelationid, out var parsedMatchCorrGuid) ? parsedMatchCorrGuid : (Guid?)null,
 
-    // StarterLegalLibrary safe access
-    Block = legalInfo?.Block,
-    Lot = legalInfo?.Lot,
-    MapBook = legalInfo?.MapBook,
-    MapPage = legalInfo?.MapPage,
-    Section = legalInfo?.Section,
-    Township = legalInfo?.Township,
-    Range = legalInfo?.Range,
-    Quarter = legalInfo?.Quarter,
-    Half = legalInfo?.Half,
-    MiningClaim = legalInfo?.MiningClaim,
-    SubParcel = legalInfo?.SubParcel,
-    CommonLot = legalInfo?.CommonLot,
-    Acreage = legalInfo?.Acreage
-};
+ParentSearchId = Guid.TryParse(parentsearchid, out var parsedParentGuid) ? parsedParentGuid : (Guid?)null,
