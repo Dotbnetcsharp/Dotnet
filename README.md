@@ -1,32 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="icon" href="%PUBLIC_URL%/img/svg/logo.svg" type="image/x-icon" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Elegant Dashboard React App"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+document.addEventListener('DOMContentLoaded', function () {
+  feather.replace();
 
-    <!-- Template CSS -->
-    <link rel="stylesheet" href="%PUBLIC_URL%/css/style.min.css" />
+  // Sidebar toggle button
+  const sidebar = document.querySelector('.sidebar');
+  const sidebarBtns = document.querySelectorAll('.sidebar-toggle');
 
-    <title>Elegant Dashboard | React</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+  sidebarBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+      btn.classList.toggle('rotated');
+    });
+  });
 
-    <!-- Template JS -->
-    <script src="%PUBLIC_URL%/plugins/chart.min.js"></script>
-    <script src="%PUBLIC_URL%/plugins/feather.min.js"></script>
-    <script src="%PUBLIC_URL%/js/script.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <script src="%PUBLIC_URL%/js/sidebar-toggle.js"></script>
-  </body>
-</html>
+  // Category buttons
+  const showCatBtns = document.querySelectorAll('.show-cat-btn');
+s
+  showCatBtns.forEach((showCatBtn) => {
+    const catSubMenu = showCatBtn.nextElementSibling;
+    showCatBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      catSubMenu.classList.toggle('visible');
+      const catBtnToRotate = showCatBtn.querySelector('.category__btn');
+      if (catBtnToRotate) {
+        catBtnToRotate.classList.toggle('rotated');
+      }
+    });
+  });
+});
