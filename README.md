@@ -1,52 +1,72 @@
-private async Task OnMessageReceived(ProcessMessageEventArgs args)
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using MyServiceBusApp.Hubs;
+using MyServiceBusApp.Models;
+
+namespace MyServiceBusApp.Services
 {
-    var message = args.Message;
-    var body = message.Body.ToString();
-    var correlationId = message.CorrelationId;
-    string status = "Unknown";
-
-    using var scope = _serviceProvider.CreateScope();
-    var externalDb = scope.ServiceProvider.GetRequiredService<ExternalDbContext>();
-    var localDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    // Check status in external DB
-    var statusRecord = await externalDb.MessageStatuses
-        .FirstOrDefaultAsync(x => x.CorrelationId == correlationId);
-
-    if (statusRecord != null)
-        status = statusRecord.Status;
-
-    // Save to your own DB
-    var tracked = await localDb.TrackedStatuses
-        .FirstOrDefaultAsync(x => x.CorrelationId == correlationId);
-
-    if (tracked == null)
+    public class StatusWatcherService : BackgroundService
     {
-        localDb.TrackedStatuses.Add(new TrackedStatus
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IHubContext<MessageHub> _hubContext;
+        private readonly Dictionary<string, string> _lastKnownStatus = new();
+
+        public StatusWatcherService(IServiceProvider serviceProvider, IHubContext<MessageHub> hubContext)
         {
-            CorrelationId = correlationId,
-            Message = body,
-            Status = status,
-            LastUpdated = DateTime.UtcNow
-        });
+            _serviceProvider = serviceProvider;
+            _hubContext = hubContext;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                using var scope = _serviceProvider.CreateScope();
+
+                var externalDb = scope.ServiceProvider.GetRequiredService<ExternalDbContext>();
+                var localDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                var externalRecords = await externalDb.MessageStatuses.ToListAsync();
+
+                foreach (var record in externalRecords)
+                {
+                    if (!_lastKnownStatus.TryGetValue(record.CorrelationId, out var lastStatus) || lastStatus != record.Status)
+                    {
+                        _lastKnownStatus[record.CorrelationId] = record.Status;
+
+                        // Save/update in your internal tracked DB
+                        var tracked = await localDb.TrackedStatuses
+                            .FirstOrDefaultAsync(x => x.CorrelationId == record.CorrelationId);
+
+                        if (tracked == null)
+                        {
+                            localDb.TrackedStatuses.Add(new TrackedStatus
+                            {
+                                CorrelationId = record.CorrelationId,
+                                Status = record.Status,
+                                LastUpdated = DateTime.UtcNow
+                            });
+                        }
+                        else
+                        {
+                            tracked.Status = record.Status;
+                            tracked.LastUpdated = DateTime.UtcNow;
+                            localDb.TrackedStatuses.Update(tracked);
+                        }
+
+                        await localDb.SaveChangesAsync();
+
+                        // Broadcast to clients
+                        await _hubContext.Clients.All.SendAsync("ReceiveStatusUpdate", new
+                        {
+                            CorrelationId = record.CorrelationId,
+                            Status = record.Status
+                        });
+                    }
+                }
+
+                await Task.Delay(2000, stoppingToken);
+            }
+        }
     }
-    else
-    {
-        tracked.Message = body;
-        tracked.Status = status;
-        tracked.LastUpdated = DateTime.UtcNow;
-        localDb.TrackedStatuses.Update(tracked);
-    }
-
-    await localDb.SaveChangesAsync();
-
-    // Send to SignalR clients
-    await _hubContext.Clients.All.SendAsync("ReceiveMessage", new
-    {
-        Text = body,
-        CorrelationId = correlationId,
-        Status = status
-    });
-
-    await args.CompleteMessageAsync(message);
 }
