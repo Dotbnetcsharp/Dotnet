@@ -1,1 +1,1 @@
-Install-Package AutoMapper.Extensions.Microsoft.DependencyInjection
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
