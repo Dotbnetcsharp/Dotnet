@@ -1,105 +1,87 @@
+Task<List<SearchItem>> GetRecentlyUpdatedSearchItems(TimeSpan withinLast);
+public async Task<List<SearchItem>> GetRecentlyUpdatedSearchItems(TimeSpan withinLast)
+        {
+            var cutoff = DateTime.UtcNow - withinLast;
 
-// ServiceBusBackgroundService.cs
-using Azure.Messaging.ServiceBus;
-using DTSQuickHit.Repositories.Contract;
-using Microsoft.AspNetCore.SignalR;
+            return await _context.SearchItems
+                .Where(x => x.LastModified >= cutoff) // Using your LastModified column
+                .ToListAsync();
+        }
+
+        using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MyServiceBusApp.Hubs;
 using MyServiceBusApp.Model;
+using DTSQuickHit.Repositories.Contract;
 
-public class ServiceBusBackgroundService : BackgroundService
+namespace MyServiceBusApp.Services
 {
-    private readonly IConfiguration _config;
-    private readonly IHubContext<MessageHub> _hubContext;
-    private readonly IServiceProvider _serviceProvider;
-    private ServiceBusProcessor _processor;
-
-    public ServiceBusBackgroundService(
-        IConfiguration config,
-        IHubContext<MessageHub> hubContext,
-        IServiceProvider serviceProvider)
+    public class StatusWatcherService : BackgroundService
     {
-        _config = config;
-        _hubContext = hubContext;
-        _serviceProvider = serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IHubContext<MessageHub> _hubContext;
+        private readonly Dictionary<string, string> _lastKnownStatus = new();
 
-        var client = new ServiceBusClient(_config["AzureServiceBus:ConnectionString"]);
-        _processor = client.CreateProcessor(
-            _config["AzureServiceBus:TopicName"],
-            _config["AzureServiceBus:SubscriptionName"],
-            new ServiceBusProcessorOptions { AutoCompleteMessages = false });
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _processor.ProcessMessageAsync += OnMessageReceived;
-        _processor.ProcessErrorAsync += OnError;
-        await _processor.StartProcessingAsync(stoppingToken);
-    }
-
-    private async Task OnMessageReceived(ProcessMessageEventArgs args)
-    {
-        var message = args.Message;
-        var body = message.Body.ToString();
-        var correlationId = message.CorrelationId;
-        string status = "Unknown";
-
-        using var scope = _serviceProvider.CreateScope();
-        var externalRepo = scope.ServiceProvider.GetRequiredService<ISearchItemRepository>();
-        var localDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        if (Guid.TryParse(correlationId, out Guid correlationGuid))
+        public StatusWatcherService(IServiceProvider serviceProvider, IHubContext<MessageHub> hubContext)
         {
-            var result = await externalRepo.GetSearchItemWithDetails(correlationGuid);
-            if (result != null)
-                status = result.Status?.ToString() ?? "Unknown";
-        }
-        else
-        {
-            Console.WriteLine("Invalid CorrelationId format");
+            _serviceProvider = serviceProvider;
+            _hubContext = hubContext;
         }
 
-        var tracked = await localDb.TrackedStatuses.FirstOrDefaultAsync(x => x.CorrelationId == correlationId);
-        if (tracked == null)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            localDb.TrackedStatuses.Add(new TrackedStatus
+            while (!stoppingToken.IsCancellationRequested)
             {
-                CorrelationId = correlationId,
-                Message = body,
-                Status = status,
-                LastUpdated = DateTime.UtcNow
-            });
+                using var scope = _serviceProvider.CreateScope();
+
+                var externalRepo = scope.ServiceProvider.GetRequiredService<ISearchItemRepository>();
+                var localDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                // Only fetch records updated in the last 10 seconds
+                var externalRecords = await externalRepo.GetRecentlyUpdatedSearchItems(TimeSpan.FromSeconds(10));
+
+                foreach (var record in externalRecords)
+                {
+                    var correlationId = record.Id.ToString();
+                    var status = record.Status?.ToString() ?? "Unknown";
+
+                    if (!_lastKnownStatus.TryGetValue(correlationId, out var lastStatus) || lastStatus != status)
+                    {
+                        _lastKnownStatus[correlationId] = status;
+
+                        // Save or update in internal tracked DB
+                        var tracked = await localDb.TrackedStatuses
+                            .FirstOrDefaultAsync(x => x.CorrelationId == correlationId);
+
+                        if (tracked == null)
+                        {
+                            localDb.TrackedStatuses.Add(new TrackedStatus
+                            {
+                                CorrelationId = correlationId,
+                                Status = status,
+                                LastUpdated = DateTime.UtcNow
+                            });
+                        }
+                        else
+                        {
+                            tracked.Status = status;
+                            tracked.LastUpdated = DateTime.UtcNow;
+                            localDb.TrackedStatuses.Update(tracked);
+                        }
+
+                        await localDb.SaveChangesAsync();
+
+                        // Broadcast to clients
+                        await _hubContext.Clients.All.SendAsync("ReceiveStatusUpdate", new
+                        {
+                            CorrelationId = record.Id,
+                            Status = status
+                        });
+                    }
+                }
+
+                await Task.Delay(2000, stoppingToken); // Check every 2 seconds
+            }
         }
-        else
-        {
-            tracked.Message = body;
-            tracked.Status = status;
-            tracked.LastUpdated = DateTime.UtcNow;
-            localDb.TrackedStatuses.Update(tracked);
-        }
-
-        await localDb.SaveChangesAsync();
-
-        await _hubContext.Clients.All.SendAsync("ReceiveMessage", new
-        {
-            Text = body,
-            CorrelationId = correlationId,
-            Status = status
-        });
-
-        await args.CompleteMessageAsync(message);
-    }
-
-    private Task OnError(ProcessErrorEventArgs args)
-    {
-        Console.WriteLine($"Service Bus Error: {args.Exception.Message}");
-        return Task.CompletedTask;
-    }
-
-    public override async Task StopAsync(CancellationToken cancellationToken)
-    {
-        await _processor.StopProcessingAsync();
-        await _processor.DisposeAsync();
-        await base.StopAsync(cancellationToken);
     }
 }
