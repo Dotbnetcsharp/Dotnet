@@ -1,36 +1,41 @@
-public interface ITrackedStatusRepository
-{
-    Task<List<TrackedStatus>> GetAllAsync();
-    Task<TrackedStatus?> GetDetailedByCorrelationIdAsync(string correlationId);
+export interface TrackedMessage {
+  correlationId: string;
+  message?: string;
+  status?: string;
+  errorTitle?: string;
+  errorMessage?: string;
+  errorData?: string;
+  countyFips?: string;
+  stateCode?: string;
+  searchType?: string;
+  dateFrom?: string;
+  dateThru?: string;
+  branch?: string;
+  user?: string;
+  clientIp?: string;
+  orderNo?: string;
+  lastUpdated?: string;
+  apns?: string[];
+
+  apnSearch?: {
+    searchedAPN: string;
+    [key: string]: any;
+  };
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    [key: string]: any;
+  };
+  owner?: {
+    name?: string;
+    contact?: string;
+    [key: string]: any;
+  };
 }
 
-using Microsoft.EntityFrameworkCore;
-using MyServiceBusApp.Model;
+setSelectedIds((prev) => (prev.length === messages.length ? [] : messages.map((m) => m.correlationId)));
 
-public class TrackedStatusRepository : ITrackedStatusRepository
-{
-    private readonly AppDbContext _context;
-
-    public TrackedStatusRepository(AppDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<List<TrackedStatus>> GetAllAsync()
-    {
-        return await _context.TrackedStatuses
-            .Include(x => x.APNSearch) // Optional if you only need SearchedAPN in table view
-            .OrderByDescending(x => x.LastUpdated)
-            .ToListAsync();
-    }
-
-    public async Task<TrackedStatus?> GetDetailedByCorrelationIdAsync(string correlationId)
-    {
-        return await _context.TrackedStatuses
-            .Include(x => x.APNSearch)
-            .Include(x => x.Address)
-            .Include(x => x.Owner)
-            .FirstOrDefaultAsync(x => x.CorrelationId == correlationId);
-    }
-}
+const response = await fetch(`${API_BASE_URL}/api/trackedstatus/${data.correlationId}/details`);
 
