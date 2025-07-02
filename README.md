@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { BarChart2, TrendingUp } from "lucide-react";
@@ -27,42 +26,41 @@ const MainContent: React.FC = () => {
     }
   }, [initialData]);
 
+  const upsertMessage = (updated: TrackedMessage) => {
+    setMessages((prev) => {
+      const index = prev.findIndex((m) => m.correlationId === updated.correlationId);
+      if (index === -1) {
+        return [updated, ...prev];
+      } else {
+        const newMessages = [...prev];
+        newMessages[index] = { ...newMessages[index], ...updated };
+        return newMessages;
+      }
+    });
+  };
+
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/messageHub`)
       .withAutomaticReconnect()
       .build();
 
-    connection.on("ReceiveMessage", async (data: TrackedMessage) => {
+    const fetchAndUpsert = async (correlationId: string) => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/trackedstatus/${data.correlationId}`);
-        const enriched = await response.json();
-
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.correlationId === enriched.correlationId);
-          return exists ? prev : [enriched, ...prev];
-        });
-      } catch {
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.correlationId === data.correlationId);
-          return exists ? prev : [data, ...prev];
-        });
+        const response = await fetch(`${API_BASE_URL}/api/trackedstatus/${correlationId}`);
+        const updated = await response.json();
+        upsertMessage(updated);
+      } catch (err) {
+        console.error("Fetch failed for", correlationId);
       }
+    };
+
+    connection.on("ReceiveMessage", (data: TrackedMessage) => {
+      fetchAndUpsert(data.correlationId);
     });
 
-    connection.on("ReceiveStatusUpdate", async (data: TrackedMessage) => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/trackedstatus/${data.correlationId}`);
-        const updated = await response.json();
-
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.correlationId === updated.correlationId ? { ...msg, ...updated } : msg
-          )
-        );
-      } catch (err) {
-        console.error("Failed to fetch updated status:", err);
-      }
+    connection.on("ReceiveStatusUpdate", (data: TrackedMessage) => {
+      fetchAndUpsert(data.correlationId);
     });
 
     connection.start().catch((err) => console.error("SignalR error:", err));
@@ -95,9 +93,11 @@ const MainContent: React.FC = () => {
   };
 
   const filtered = messages.filter((msg) => {
-    const matchStatus = filterStatus === "All" || msg.status?.toLowerCase() === filterStatus.toLowerCase();
-    const matchSearch = msg.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        msg.correlationId?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchStatus =
+      filterStatus === "All" || msg.status?.toLowerCase() === filterStatus.toLowerCase();
+    const matchSearch =
+      msg.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      msg.correlationId?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchStatus && matchSearch;
   });
 
@@ -117,6 +117,26 @@ const MainContent: React.FC = () => {
     <main className="main users chart-page" id="skip-target">
       <div className="container">
         <h2 className="main-title">Dashboard</h2>
+
+        <div className="row stat-cards">
+          <div className="col-md-6 col-xl-3">
+            <article className="stat-cards-item">
+              <div className="stat-cards-icon primary">
+                <BarChart2 size={24} />
+              </div>
+              <div className="stat-cards-info">
+                <p className="stat-cards-info__num">1478 286</p>
+                <p className="stat-cards-info__title">Total visits</p>
+                <p className="stat-cards-info__progress">
+                  <span className="stat-cards-info__profit success">
+                    <TrendingUp size={16} /> 4.07%
+                  </span>
+                  Last month
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="d-flex justify-content-between mb-3">
