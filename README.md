@@ -29,13 +29,10 @@ const MainContent: React.FC = () => {
   const upsertMessage = (updated: TrackedMessage) => {
     setMessages((prev) => {
       const index = prev.findIndex((m) => m.correlationId === updated.correlationId);
-      if (index === -1) {
-        return [updated, ...prev];
-      } else {
-        const newMessages = [...prev];
-        newMessages[index] = { ...newMessages[index], ...updated };
-        return newMessages;
-      }
+      if (index === -1) return [updated, ...prev];
+      const updatedList = [...prev];
+      updatedList[index] = { ...updatedList[index], ...updated };
+      return updatedList;
     });
   };
 
@@ -48,33 +45,34 @@ const MainContent: React.FC = () => {
     const fetchAndUpsert = async (correlationId: string) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/trackedstatus/${correlationId}`);
-        const updated = await response.json();
-        upsertMessage(updated);
+        if (!response.ok) throw new Error(`Fetch failed with status ${response.status}`);
+        const enriched = await response.json();
+        upsertMessage(enriched);
       } catch (err) {
-        console.error("Fetch failed for", correlationId);
+        console.error("❌ Fetch failed:", err);
       }
     };
 
     connection.on("ReceiveMessage", (data: TrackedMessage) => {
-      fetchAndUpsert(data.correlationId);
+      if (data?.correlationId) {
+        fetchAndUpsert(data.correlationId);
+      }
     });
 
     connection.on("ReceiveStatusUpdate", (data: TrackedMessage) => {
-      fetchAndUpsert(data.correlationId);
+      if (data?.correlationId) {
+        fetchAndUpsert(data.correlationId);
+      }
     });
 
-    connection.start().catch((err) => console.error("SignalR error:", err));
-    return () => {
-      connection.stop();
-    };
+    connection.start().catch((err) => console.error("SignalR connection error:", err));
+    return () => connection.stop();
   }, []);
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === messages.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(messages.map((m) => m.correlationId));
-    }
+    setSelectedIds((prev) =>
+      prev.length === messages.length ? [] : messages.map((m) => m.correlationId)
+    );
   };
 
   const toggleSelectOne = (id: string) => {
@@ -103,11 +101,11 @@ const MainContent: React.FC = () => {
 
   const sorted = [...filtered].sort((a, b) => {
     if (!sortBy) return 0;
-    const aValue = a[sortBy] ?? "";
-    const bValue = b[sortBy] ?? "";
+    const aVal = a[sortBy] ?? "";
+    const bVal = b[sortBy] ?? "";
     return sortOrder === "asc"
-      ? String(aValue).localeCompare(String(bValue))
-      : String(bValue).localeCompare(String(aValue));
+      ? String(aVal).localeCompare(String(bVal))
+      : String(bVal).localeCompare(String(aVal));
   });
 
   const paginated = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -138,7 +136,7 @@ const MainContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filter section */}
         <div className="d-flex justify-content-between mb-3">
           <input
             type="text"
@@ -173,7 +171,8 @@ const MainContent: React.FC = () => {
                       className="check-all"
                       checked={selectedIds.length === messages.length && messages.length > 0}
                       onChange={toggleSelectAll}
-                    /> Select
+                    />
+                    Select
                   </label>
                 </th>
                 <th onClick={() => handleSort("message")}>Message</th>
@@ -227,7 +226,9 @@ const MainContent: React.FC = () => {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i}
-                className={`btn btn-sm mx-1 ${currentPage === i + 1 ? "btn-primary" : "btn-outline-primary"}`}
+                className={`btn btn-sm mx-1 ${
+                  currentPage === i + 1 ? "btn-primary" : "btn-outline-primary"
+                }`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
