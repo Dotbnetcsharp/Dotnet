@@ -1,12 +1,8 @@
+
 return new AddressDocumentsResponseDto
 {
-    Addresses = !string.IsNullOrWhiteSpace(addressesMapped?.AddressLine) 
-        ? addressesMapped 
-        : null,
-
-    StarterPropertys = string.IsNullOrWhiteSpace(addressesMapped?.AddressLine) 
-        ? starterPropertys 
-        : null,
+    Addresses = addressesMapped != null && addressesMapped.Any() ? addressesMapped : null,
+    StarterPropertys = (addressesMapped == null || !addressesMapped.Any()) ? apnsMapped : null,
 
     Status = itemResponse.Status,
     SearchCriteria = sc.ToList(),
@@ -14,8 +10,14 @@ return new AddressDocumentsResponseDto
 
     PlantCurrency = new PlantCurrency
     {
-        PlantFromDate = countyDetails.Any() ? countyc : null,
-        PlantThruDate = countyDetails.Any() ? countyd : null,
-        PlantThruInst = countyDetails.Any() ? countydInst : null
+        PlantFromDate = countyDetails.Any() ? countyDetails.First()?.CountyToDate : null,
+        PlantThruDate = countyDetails.Any() ? countyDetails.First()?.CountyToDate : null,
+        PlantThruInst = countyDetails.Any() ? countyDetails.First()?.CountyInstrumentThru : null,
+        PlantThruInstDocumentType = countyDetails.Any() ? countyDetails.First()?.CountyInstrumentThruDocumentType : null,
+    },
+
+    Qualifiers = new ResponseQualifiersDTO
+    {
+        // Fill if required
     }
 };
