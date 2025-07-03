@@ -1,23 +1,8 @@
 
-return new AddressDocumentsResponseDto
-{
-    Addresses = addressesMapped != null && addressesMapped.Any() ? addressesMapped : null,
-    StarterPropertys = (addressesMapped == null || !addressesMapped.Any()) ? apnsMapped : null,
-
-    Status = itemResponse.Status,
-    SearchCriteria = sc.ToList(),
-    RunHistory = runhistories,
-
-    PlantCurrency = new PlantCurrency
-    {
-        PlantFromDate = countyDetails.Any() ? countyDetails.First()?.CountyToDate : null,
-        PlantThruDate = countyDetails.Any() ? countyDetails.First()?.CountyToDate : null,
-        PlantThruInst = countyDetails.Any() ? countyDetails.First()?.CountyInstrumentThru : null,
-        PlantThruInstDocumentType = countyDetails.Any() ? countyDetails.First()?.CountyInstrumentThruDocumentType : null,
-    },
-
-    Qualifiers = new ResponseQualifiersDTO
-    {
-        // Fill if required
-    }
-};
+Message = result.Item1.Count() > 0 
+    ? null 
+    : "No property match found for " + 
+        (itemResponse.SearchType == "STARTER_PROPERTY" 
+            ? itemResponse.StarterProperty?.Address 
+            : itemResponse.AddressSearch?.SearchedAddress) 
+        + " search parameter.",
