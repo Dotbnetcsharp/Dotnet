@@ -1,111 +1,101 @@
+.nav-user-wrapper {
+  position: relative;
+}
 
-// src/components/Navbar.tsx
-import React, { useEffect, useState } from "react";
-import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../authConfig";
-import "./Navbar.css"; // make sure this has your popup-avatar and styles
+.nav-user-img img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
 
-const Navbar: React.FC = () => {
-  const { instance } = useMsal();
-  const [userModalOpen, setUserModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+.user-profile-popup {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 300px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  z-index: 999;
+}
 
-  // Check for logged in account
-  useEffect(() => {
-    const accounts = instance.getAllAccounts();
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      setIsAuthenticated(true);
-      setUserName(account.name || "");
-      setUserEmail(account.username || "");
-    }
-  }, [instance]);
+.popup-user-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
 
-  const handleLogin = async () => {
-    try {
-      const loginResponse = await instance.loginPopup(loginRequest);
-      const account = loginResponse.account;
+.popup-avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 18px;
+}
 
-      const tokenResponse = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account,
-      });
+.popup-details {
+  flex: 1;
+  min-width: 0;
+}
 
-      sessionStorage.setItem("jwt_token", tokenResponse.accessToken);
-      setIsAuthenticated(true);
-      setUserName(account?.name || "");
-      setUserEmail(account?.username || "");
-    } catch (err) {
-      console.error("Login failed:", err);
-    }
-  };
+.popup-name {
+  font-weight: bold;
+  margin: 0;
+}
 
-  const handleLogout = () => {
-    sessionStorage.clear();
-    instance.logoutPopup({ postLogoutRedirectUri: "/" });
-    setIsAuthenticated(false);
-    setUserName("");
-    setUserEmail("");
-    setUserModalOpen(false);
-  };
+.popup-email {
+  margin: 0;
+  color: #555;
+  word-wrap: break-word;
+  white-space: normal;
+  font-size: 14px;
+}
 
-  const toggleUserModal = () => {
-    if (!isAuthenticated) {
-      handleLogin();
-    } else {
-      setUserModalOpen((prev) => !prev);
-    }
-  };
+.popup-link {
+  color: #0078d4;
+  text-decoration: none;
+  font-size: 13px;
+}
 
-  return (
-    <div className="nav-user-wrapper">
-      <button
-        className="nav-user-btn dropdown-btn"
-        title="My profile"
-        type="button"
-        onClick={toggleUserModal}
-      >
-        <span className="sr-only">My profile</span>
-        <span className="nav-user-img">
-          <img src="/path/to/user.png" alt="User" />
-        </span>
-      </button>
+.popup-signout,
+.status-message {
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  font-size: 14px;
+}
 
-      {userModalOpen && isAuthenticated && (
-        <div className="user-profile-popup">
-          <div className="popup-header">
-            <span className="popup-title">Personal</span>
-            <button className="popup-signout" onClick={handleLogout}>
-              Sign out
-            </button>
-          </div>
-          <div className="popup-user-info">
-            <div className="popup-avatar">{userName?.charAt(0)}</div>
-            <div className="popup-details">
-              <p className="popup-name">{userName}</p>
-              <p className="popup-email">{userEmail}</p>
-              <a href="#" className="popup-link">
-                My Microsoft account
-              </a>
-            </div>
-          </div>
-          <div className="popup-status">
-            <div className="status-info">
-              <span className="status-dot"></span>
-              <span>Available</span>
-            </div>
-            <button className="status-message">Set status message</button>
-          </div>
-          <div className="popup-footer">
-            <span className="add-icon">+</span>
-            <span>Add another account</span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+.popup-header,
+.popup-status,
+.popup-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
 
-export default Navbar;
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  background-color: green;
+  border-radius: 50%;
+}
+
+.add-icon {
+  font-size: 20px;
+  margin-right: 6px;
+}
