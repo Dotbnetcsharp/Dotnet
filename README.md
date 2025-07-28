@@ -39,3 +39,7 @@ public static string GetExecutableSql(SqlCommand command)
     builder.AppendLine(string.Join(",\n", paramStrings));
     return builder.ToString();
 }
+
+
+
+var sqlToRunManually = GetExecutableSql(cmd);
