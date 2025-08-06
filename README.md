@@ -1,42 +1,66 @@
-// Parse the HTML response from the profile page
-Document doc = Jsoup.parse(profileResponseBody);
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
-// Base URL for relative links
-String baseUrl = "https://assessment.nnva.gov/PT/";
+public class ReportUrlExtractor {
+    public static void main(String[] args) {
+        String html = taxdueResponseBody; // HTML content from response
 
-// Individual variables
-String valuesLink = null;
-String salesLink = null;
-String taxesDueDetailLink = null;
+        // Parse HTML
+        Document doc = Jsoup.parse(html);
 
-// Extract "Values" link
-Element valuesEl = doc.select("a:containsOwn(Values)").first();
-if (valuesEl != null) {
-    valuesLink = valuesEl.attr("href");
-    if (!valuesLink.startsWith("http")) {
-        valuesLink = baseUrl + valuesLink.replaceFirst("^\\./", "");
+        // Extract from datalet_div_7
+        Element div7 = doc.getElementById("datalet_div_7");
+        String url7 = extractFullUrl(div7);
+
+        // Extract from datalet_div_8
+        Element div8 = doc.getElementById("datalet_div_8");
+        String url8 = extractFullUrl(div8);
+
+        System.out.println("Generate Report URL 1 (div_7): " + url7);
+        System.out.println("Generate Report URL 2 (div_8): " + url8);
+    }
+
+    private static String extractFullUrl(Element div) {
+        if (div == null) return null;
+
+        // Convert inner HTML to string
+        String htmlContent = div.html();
+
+        // Find start of window.open("...") call
+        String marker = "window.open(\"";
+        int start = htmlContent.indexOf(marker);
+        if (start == -1) return null;
+
+        start += marker.length();
+        int end = htmlContent.indexOf("\"", start);
+        if (end == -1) return null;
+
+        String foundUrl = htmlContent.substring(start, end); // e.g. "/ssrs/inline/..."
+
+        // Try to extract domain from somewhere in this div
+        // Look for a <a> tag or <script> or any full URL in the div
+        String fullDomain = extractDomainFromDiv(htmlContent);
+
+        if (foundUrl.startsWith("http")) {
+            return foundUrl; // already full
+        } else if (fullDomain != null) {
+            return fullDomain + foundUrl;
+        } else {
+            return foundUrl; // fallback to relative
+        }
+    }
+
+    private static String extractDomainFromDiv(String htmlContent) {
+        // Look for any http or https link in the HTML to guess the domain
+        String token = "https://";
+        int index = htmlContent.indexOf(token);
+        if (index == -1) return null;
+
+        int end = htmlContent.indexOf("/", index + token.length());
+        if (end == -1) return null;
+
+        // We now have: https://domain.com
+        return htmlContent.substring(index, end);
     }
 }
-
-// Extract "Sales" link
-Element salesEl = doc.select("a:containsOwn(Sales)").first();
-if (salesEl != null) {
-    salesLink = salesEl.attr("href");
-    if (!salesLink.startsWith("http")) {
-        salesLink = baseUrl + salesLink.replaceFirst("^\\./", "");
-    }
-}
-
-// Extract "Taxes Due Detail" link
-Element taxesEl = doc.select("a:containsOwn(Taxes Due Detail)").first();
-if (taxesEl != null) {
-    taxesDueDetailLink = taxesEl.attr("href");
-    if (!taxesDueDetailLink.startsWith("http")) {
-        taxesDueDetailLink = baseUrl + taxesDueDetailLink.replaceFirst("^\\./", "");
-    }
-}
-
-// Print for verification
-System.out.println("Values Link: " + valuesLink);
-System.out.println("Sales Link: " + salesLink);
-System.out.println("Taxes Due Detail Link: " + taxesDueDetailLink);
