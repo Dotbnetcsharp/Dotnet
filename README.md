@@ -1,39 +1,42 @@
-private String validateAPN() {
-    String propId = null;
-    String errorMessage = null;
+// Parse the HTML response from the profile page
+Document doc = Jsoup.parse(profileResponseBody);
 
-    try {
-        propId = requestConf.getPropertyId().trim();
+// Base URL for relative links
+String baseUrl = "https://assessment.nnva.gov/PT/";
 
-        // Case 1: Contains dot or hyphen (e.g., 006.00-01-24)
-        if (propId.matches(".*[.-].*")) {
-            // Remove dots and hyphens
-            String cleaned = propId.replaceAll("[.-]", "");
+// Individual variables
+String valuesLink = null;
+String salesLink = null;
+String taxesDueDetailLink = null;
 
-            // Should be exactly 9 digits
-            if (cleaned.matches("\\d{9}")) {
-                propId = cleaned;
-                requestConf.debug("Formatted Property ID (patterned): " + propId);
-            } else {
-                errorMessage = "Invalid formatted Parcel Number";
-            }
-
-        // Case 2: Only digits, exactly 9 characters
-        } else if (propId.matches("\\d{9}")) {
-            requestConf.debug("Formatted Property ID (plain numeric): " + propId);
-
-        } else {
-            errorMessage = "Invalid Parcel Number";
-        }
-
-    } catch (Exception e) {
-        requestConf.setExceptionType(e);
-        requestConf.debug("Exception in Validating APN");
-    }
-
-    if (StringUtils.isNotBlank(errorMessage)) {
-        return errorMessage;
-    } else {
-        return propId;
+// Extract "Values" link
+Element valuesEl = doc.select("a:containsOwn(Values)").first();
+if (valuesEl != null) {
+    valuesLink = valuesEl.attr("href");
+    if (!valuesLink.startsWith("http")) {
+        valuesLink = baseUrl + valuesLink.replaceFirst("^\\./", "");
     }
 }
+
+// Extract "Sales" link
+Element salesEl = doc.select("a:containsOwn(Sales)").first();
+if (salesEl != null) {
+    salesLink = salesEl.attr("href");
+    if (!salesLink.startsWith("http")) {
+        salesLink = baseUrl + salesLink.replaceFirst("^\\./", "");
+    }
+}
+
+// Extract "Taxes Due Detail" link
+Element taxesEl = doc.select("a:containsOwn(Taxes Due Detail)").first();
+if (taxesEl != null) {
+    taxesDueDetailLink = taxesEl.attr("href");
+    if (!taxesDueDetailLink.startsWith("http")) {
+        taxesDueDetailLink = baseUrl + taxesDueDetailLink.replaceFirst("^\\./", "");
+    }
+}
+
+// Print for verification
+System.out.println("Values Link: " + valuesLink);
+System.out.println("Sales Link: " + salesLink);
+System.out.println("Taxes Due Detail Link: " + taxesDueDetailLink);
