@@ -8,16 +8,15 @@ using var reader = new StreamReader(context.Request.Body);
 var body = await reader.ReadToEndAsync();
 context.Request.Body.Position = 0;
 
-// Check raw string for invalid backslashes in orderNumber
-// This regex matches: "orderNumber":"..." containing single \
-if (Regex.IsMatch(body, @"""orderNumber""\s*:\s*""[^""]*?(?<!\\)\\(?!\\)[^""]*""", RegexOptions.IgnoreCase))
+// Regex to match "orderNumber":"..." containing an odd number of backslashes
+if (Regex.IsMatch(body, @"""orderNumber""\s*:\s*""[^""]*\\(?:\\\\)*\\[^""]*""", RegexOptions.IgnoreCase))
 {
     context.Response.StatusCode = 400;
     await context.Response.WriteAsync(JsonSerializer.Serialize(new
     {
         error = "Invalid order number containing wrong backslash."
     }));
-    return;
+    return; // Stop further processing
 }
 
-// ✅ If valid, do nothing
+// ✅ If valid or missing, do nothing
