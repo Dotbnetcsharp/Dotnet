@@ -1,40 +1,29 @@
-using System.Text.Json;
-using Microsoft.AspNetCore.Http;
+bool isAllowed = false;
 
-// Read raw request body
-context.Request.EnableBuffering();
-using var reader = new StreamReader(context.Request.Body);
-var body = await reader.ReadToEndAsync();
-context.Request.Body.Position = 0;
-
-// Try to get orderNumber value manually
-int start = body.IndexOf("\"orderNumber\"") ;
-if (start >= 0)
+if (!string.IsNullOrWhiteSpace(requestState) && !string.IsNullOrWhiteSpace(requestCounty))
 {
-    int colon = body.IndexOf(":", start);
-    int quoteStart = body.IndexOf("\"", colon) + 1;
-    int quoteEnd = body.IndexOf("\"", quoteStart);
-    if (quoteStart > 0 && quoteEnd > quoteStart)
-    {
-        string orderNumber = body.Substring(quoteStart, quoteEnd - quoteStart);
+    // ✅ Case 1: Both state & county given → check pair
+    isAllowed = companyDetails.GeographicAccess.Any(geo =>
+        string.Equals(geo.State, requestState, StringComparison.OrdinalIgnoreCase) &&
+        geo.Counties.Any(c => string.Equals(c, requestCounty, StringComparison.OrdinalIgnoreCase))
+    );
+}
+else if (!string.IsNullOrWhiteSpace(requestState))
+{
+    // ✅ Case 2: Only state given → check state exists
+    isAllowed = companyDetails.GeographicAccess.Any(geo =>
+        string.Equals(geo.State, requestState, StringComparison.OrdinalIgnoreCase)
+    );
+}
+else if (!string.IsNullOrWhiteSpace(requestCounty))
+{
+    // ✅ Case 3: Only county given → check county exists in any state
+    isAllowed = companyDetails.GeographicAccess.Any(geo =>
+        geo.Counties.Any(c => string.Equals(c, requestCounty, StringComparison.OrdinalIgnoreCase))
+    );
+}
 
-        // Check for any odd number of consecutive backslashes
-        int count = 0;
-        foreach (char c in orderNumber)
-        {
-            if (c == '\\') count++;
-            else { if (count % 2 == 1) goto Invalid; count = 0; }
-        }
-        if (count % 2 == 1) goto Invalid;
-
-        return; // ✅ Valid, do nothing
-
-    Invalid:
-        context.Response.StatusCode = 400;
-        await context.Response.WriteAsync(JsonSerializer.Serialize(new
-        {
-            error = "Invalid order number containing wrong backslash."
-        }));
-        return;
-    }
+if (!isAllowed)
+{
+    throw new BadRequestException("Invalid state/county combination or not allowed for this company.");
 }
