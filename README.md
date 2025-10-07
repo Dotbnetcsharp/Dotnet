@@ -1,29 +1,37 @@
-bool isAllowed = false;
+public class NCSSearchService
+{
+    private readonly NCSapiConfiguration _ncsApiConfiguration;
+    private readonly HttpClient _httpClient;
 
-if (!string.IsNullOrWhiteSpace(requestStateCode) && !string.IsNullOrWhiteSpace(requestCountyFips))
-{
-    // ✅ Case 1: Both stateCode & countyFips → pair check
-    isAllowed = companyDetails.GeographicAccess.Any(geo =>
-        string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase) &&
-        geo.Counties.Any(c => string.Equals(c.CountyFips, requestCountyFips, StringComparison.OrdinalIgnoreCase))
-    );
-}
-else if (!string.IsNullOrWhiteSpace(requestCountyFips))
-{
-    // ✅ Case 2: Only countyFips → search across all states
-    isAllowed = companyDetails.GeographicAccess.Any(geo =>
-        geo.Counties.Any(c => string.Equals(c.CountyFips, requestCountyFips, StringComparison.OrdinalIgnoreCase))
-    );
-}
-else if (!string.IsNullOrWhiteSpace(requestStateCode))
-{
-    // ✅ Case 3: Only stateCode → check if stateCode exists
-    isAllowed = companyDetails.GeographicAccess.Any(geo =>
-        string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase)
-    );
-}
+    public NCSSearchService(IOptions<NCSapiConfiguration> ncsapiConfiguration, HttpClient httpClient)
+    {
+        _ncsApiConfiguration = ncsapiConfiguration.Value;
+        _httpClient = httpClient;
+    }
 
-if (!isAllowed)
-{
-    throw new BadRequestException("Invalid stateCode/countyFips combination or not found in geographic access.");
+    public async Task<StarterCompanyDetailsResponse> NCSCompanyRequestsAsync(NCSCompanyRequestsDTO companyRequestsDTO)
+    {
+        try
+        {
+            companyRequestsDTO.Products ??= new Products();
+            companyRequestsDTO.Products.StarterIQ = true;
+
+            var json = JsonConvert.SerializeObject(companyRequestsDTO);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var fullUrl = $"{_ncsApiConfiguration.Instance.TrimEnd('/')}/api/Company/getCompanyDetails";
+            Console.WriteLine($"Calling API: {fullUrl}");
+
+            var response = await _httpClient.PostAsync(fullUrl, content);
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<StarterCompanyDetailsResponse>(responseJson);
+        }
+        catch (TaskCanceledException ex)
+        {
+            Console.WriteLine($"Request timed out or canceled: {ex.Message}");
+            throw;
+        }
+    }
 }
