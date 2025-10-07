@@ -1,46 +1,79 @@
-bool isAllowed = false;
-
-// Normalize countyFips to exactly 5 digits (pad with zeros if shorter)
-string normalizedCountyFips = null;
-if (!string.IsNullOrWhiteSpace(requestCountyFips))
+public class GeographicValidationResult
 {
-    normalizedCountyFips = requestCountyFips.PadLeft(5, '0');
+    public bool IsAllowed { get; set; }
+    public string CountyCode { get; set; } // returned from matched JSON (null if none)
 }
 
-// ===== CASE 1: Both stateCode & countyFips =====
-if (!string.IsNullOrWhiteSpace(requestStateCode) && !string.IsNullOrWhiteSpace(normalizedCountyFips))
+public GeographicValidationResult ValidateGeographicAccess(
+    CompanyDetailsResponse companyDetails,
+    string requestStateCode,      // optional
+    string requestCountyFips)     // optional, expected as up to 5 digits (e.g. "02300")
 {
-    string stateFipsPart = normalizedCountyFips.Substring(0, 2);
-    string countyFipsPart = normalizedCountyFips.Substring(2, 3);
+    var result = new GeographicValidationResult { IsAllowed = false, CountyCode = null };
 
-    isAllowed = companyDetails.GeographicAccess.Any(geo =>
-        string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(geo.StateFips, stateFipsPart, StringComparison.OrdinalIgnoreCase) &&
-        geo.Counties.Any(c => string.Equals(c.CountyFips, countyFipsPart, StringComparison.OrdinalIgnoreCase))
-    );
-}
+    // Nothing to check
+    if (string.IsNullOrWhiteSpace(requestStateCode) && string.IsNullOrWhiteSpace(requestCountyFips))
+        return result;
 
-// ===== CASE 2: Only countyFips =====
-else if (!string.IsNullOrWhiteSpace(normalizedCountyFips))
-{
-    string stateFipsPart = normalizedCountyFips.Substring(0, 2);
-    string countyFipsPart = normalizedCountyFips.Substring(2, 3);
+    // Normalize countyFips to 5 chars (pad with leading zeros if needed)
+    string normalizedCountyFips = null;
+    if (!string.IsNullOrWhiteSpace(requestCountyFips))
+        normalizedCountyFips = requestCountyFips.PadLeft(5, '0');
 
-    isAllowed = companyDetails.GeographicAccess.Any(geo =>
-        string.Equals(geo.StateFips, stateFipsPart, StringComparison.OrdinalIgnoreCase) &&
-        geo.Counties.Any(c => string.Equals(c.CountyFips, countyFipsPart, StringComparison.OrdinalIgnoreCase))
-    );
-}
+    // CASE 1: both stateCode && countyFips provided -> exact pair (and stateFips must match first 2 digits)
+    if (!string.IsNullOrWhiteSpace(requestStateCode) && !string.IsNullOrWhiteSpace(normalizedCountyFips))
+    {
+        string stateFipsPart = normalizedCountyFips.Substring(0, 2);
+        string countyFipsPart = normalizedCountyFips.Substring(2, 3);
 
-// ===== CASE 3: Only stateCode =====
-else if (!string.IsNullOrWhiteSpace(requestStateCode))
-{
-    isAllowed = companyDetails.GeographicAccess.Any(geo =>
-        string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase)
-    );
-}
+        foreach (var geo in companyDetails.GeographicAccess)
+        {
+            if (string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(geo.StateFips, stateFipsPart, StringComparison.OrdinalIgnoreCase))
+            {
+                var matchedCounty = geo.Counties.FirstOrDefault(c =>
+                    string.Equals(c.CountyFips, countyFipsPart, StringComparison.OrdinalIgnoreCase));
 
-if (!isAllowed)
-{
-    throw new BadRequestException($"Invalid combination — not found for stateCode '{requestStateCode}' and countyFips '{requestCountyFips}'.");
+                if (matchedCounty != null)
+                {
+                    result.IsAllowed = true;
+                    result.CountyCode = matchedCounty.CountyCode;
+                    return result;
+                }
+            }
+        }
+    }
+    // CASE 2: only countyFips provided -> derive stateFips (first 2) and find the county under that stateFips
+    else if (!string.IsNullOrWhiteSpace(normalizedCountyFips))
+    {
+        string stateFipsPart = normalizedCountyFips.Substring(0, 2);
+        string countyFipsPart = normalizedCountyFips.Substring(2, 3);
+
+        foreach (var geo in companyDetails.GeographicAccess)
+        {
+            if (string.Equals(geo.StateFips, stateFipsPart, StringComparison.OrdinalIgnoreCase))
+            {
+                var matchedCounty = geo.Counties.FirstOrDefault(c =>
+                    string.Equals(c.CountyFips, countyFipsPart, StringComparison.OrdinalIgnoreCase));
+
+                if (matchedCounty != null)
+                {
+                    result.IsAllowed = true;
+                    result.CountyCode = matchedCounty.CountyCode;
+                    return result;
+                }
+            }
+        }
+    }
+    // CASE 3: only stateCode provided -> just check state exists
+    else if (!string.IsNullOrWhiteSpace(requestStateCode))
+    {
+        var matchedState = companyDetails.GeographicAccess
+            .FirstOrDefault(geo => string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase));
+
+        if (matchedState != null)
+            result.IsAllowed = true; // CountyCode stays null
+    }
+
+    return result;
 }
