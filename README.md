@@ -1,51 +1,46 @@
-public async Task<StarterCompanyDetailsResponse> GetCompanyDetails(NCSCompanyRequestDTO companyRequestDTO)
+bool isAllowed = false;
+
+// Normalize countyFips to exactly 5 digits (pad with zeros if shorter)
+string normalizedCountyFips = null;
+if (!string.IsNullOrWhiteSpace(requestCountyFips))
 {
-    try
-    {
-        companyRequestDTO.Products ??= new Products();
+    normalizedCountyFips = requestCountyFips.PadLeft(5, '0');
+}
 
-        // Convert object to JSON
-        var json = JsonConvert.SerializeObject(companyRequestDTO);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+// ===== CASE 1: Both stateCode & countyFips =====
+if (!string.IsNullOrWhiteSpace(requestStateCode) && !string.IsNullOrWhiteSpace(normalizedCountyFips))
+{
+    string stateFipsPart = normalizedCountyFips.Substring(0, 2);
+    string countyFipsPart = normalizedCountyFips.Substring(2, 3);
 
-        // Build URL (same as before)
-        var fullURL = $"{_ncsapiconfiguration.Value.BaseUrl}/starter-company/details";
-        Console.WriteLine($"[INFO] Calling API: {fullURL}");
+    isAllowed = companyDetails.GeographicAccess.Any(geo =>
+        string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(geo.StateFips, stateFipsPart, StringComparison.OrdinalIgnoreCase) &&
+        geo.Counties.Any(c => string.Equals(c.CountyFips, countyFipsPart, StringComparison.OrdinalIgnoreCase))
+    );
+}
 
-        // --- FIX START ---
-        // Prevent "TaskCanceledException" on second call
-        _httpClient.DefaultRequestHeaders.ConnectionClose = true; 
-        _httpClient.Timeout = TimeSpan.FromMinutes(2);            // increase timeout
-        _httpClient.DefaultRequestHeaders.ExpectContinue = false; // avoid slow handshake
+// ===== CASE 2: Only countyFips =====
+else if (!string.IsNullOrWhiteSpace(normalizedCountyFips))
+{
+    string stateFipsPart = normalizedCountyFips.Substring(0, 2);
+    string countyFipsPart = normalizedCountyFips.Substring(2, 3);
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2)); // custom timeout
-        // --- FIX END ---
+    isAllowed = companyDetails.GeographicAccess.Any(geo =>
+        string.Equals(geo.StateFips, stateFipsPart, StringComparison.OrdinalIgnoreCase) &&
+        geo.Counties.Any(c => string.Equals(c.CountyFips, countyFipsPart, StringComparison.OrdinalIgnoreCase))
+    );
+}
 
-        // Make API call
-        var response = await _httpClient.PostAsync(fullURL, content, cts.Token);
-        Console.WriteLine($"[INFO] API responded with status: {response.StatusCode}");
+// ===== CASE 3: Only stateCode =====
+else if (!string.IsNullOrWhiteSpace(requestStateCode))
+{
+    isAllowed = companyDetails.GeographicAccess.Any(geo =>
+        string.Equals(geo.StateCode, requestStateCode, StringComparison.OrdinalIgnoreCase)
+    );
+}
 
-        response.EnsureSuccessStatusCode();
-
-        var responseJson = await response.Content.ReadAsStringAsync();
-
-        var responseObject = JsonConvert.DeserializeObject<StarterCompanyDetailsResponse>(responseJson);
-
-        return responseObject ?? new StarterCompanyDetailsResponse();
-    }
-    catch (TaskCanceledException ex)
-    {
-        Console.WriteLine($"[ERROR] Request timed out or canceled: {ex.Message}");
-        throw new Exception("The API request was canceled or took too long. Check timeout or server performance.", ex);
-    }
-    catch (HttpRequestException ex)
-    {
-        Console.WriteLine($"[ERROR] HTTP request failed: {ex.Message}");
-        throw new Exception("An HTTP error occurred while calling the API.", ex);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[ERROR] Unexpected error in GetCompanyDetails: {ex.Message}");
-        throw;
-    }
+if (!isAllowed)
+{
+    throw new BadRequestException($"Invalid combination — not found for stateCode '{requestStateCode}' and countyFips '{requestCountyFips}'.");
 }
